@@ -25,9 +25,9 @@ async def wshandler(request):
 		elif msg.tp == web.MsgType.close or msg.tp == web.MsgType.error:
 			break
 
-		app['sockets'].remove(ws)
-		print('closed connection with {}'.format(ws))
-		return ws
+	app['sockets'].remove(ws)
+	print('closed connection with {}'.format(ws))
+	return ws
 
 async def game_loop(app):
 	while True:
