@@ -29,7 +29,7 @@ async def game_loop(app):
 	while True:
 		for ws in app['sockets']:
 			ws.send_str('game loop says: tick')
-		await asynio.sleep(2)
+		await asyncio.sleep(2)
 
 if __name__ == '__main__':
 	app = web.Application()
