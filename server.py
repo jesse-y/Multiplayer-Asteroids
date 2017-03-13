@@ -3,11 +3,11 @@ from aiohttp import web
 
 async def handle(request):
 	print ('got request: {}'.format(request))
-	dir(request)
 
 	index = open('index.html', 'rb')
 	content = index.read()
-	return web.Response(body=content)
+	#return web.Response(body=content)
+	return web.Response(text='hello world')
 
 async def wshandler(request):
 	print('got request: {}'.format(request))
