@@ -9,13 +9,11 @@ async def handle(request):
 	return web.Response(content_type='text/html', body=content)
 
 async def wshandler(request):
-	print('got request: {}'.format(request))
 
 	app = request.app
 	ws = web.WebSocketResponse()
 	await ws.prepare(request)
 	app['sockets'].append(ws)
-	print(app['sockets'])
 
 	while True:
 		msg = await ws.receive()
@@ -26,7 +24,7 @@ async def wshandler(request):
 			break
 
 	app['sockets'].remove(ws)
-	print('closed connection with {}'.format(ws))
+	print('closed connection')
 	return ws
 
 async def game_loop(app):
