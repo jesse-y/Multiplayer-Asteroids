@@ -3,6 +3,7 @@ from aiohttp import web
 
 async def handle(request):
 	print ('got request: {}'.format(request))
+	dir(request)
 
 	index = open('index.html', 'rb')
 	content = index.read()
@@ -10,7 +11,8 @@ async def handle(request):
 
 async def wshandler(request):
 	print('got request: {}'.format(request))
-	
+	dir(request)
+
 	app = request.app
 	ws. web.WebSocketResponse()
 	await ws.prepare(request)
