@@ -32,7 +32,7 @@ async def game_loop(app):
 		await asynio.sleep(2)
 
 if __name__ == '__main__':
-	app = web.Application
+	app = web.Application()
 	app['sockets'] = []
 
 	asyncio.ensure_future(game_loop(app))
