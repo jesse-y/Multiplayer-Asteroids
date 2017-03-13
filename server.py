@@ -12,7 +12,7 @@ async def wshandler(request):
 	print('got request: {}'.format(request))
 
 	app = request.app
-	ws. web.WebSocketResponse()
+	ws = web.WebSocketResponse()
 	await ws.prepare(request)
 	app['sockets'].append(ws)
 	print(app['sockets'])
