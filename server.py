@@ -6,12 +6,10 @@ async def handle(request):
 
 	index = open('index.html', 'rb')
 	content = index.read()
-	#return web.Response(body=content)
-	return web.Response(text='hello world')
+	return web.Response(content_type='text/html', body=content)
 
 async def wshandler(request):
 	print('got request: {}'.format(request))
-	dir(request)
 
 	app = request.app
 	ws. web.WebSocketResponse()
