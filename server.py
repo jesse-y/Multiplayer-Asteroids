@@ -2,11 +2,15 @@ import asyncio
 from aiohttp import web
 
 async def handle(request):
+	print ('got request: {}'.format(request))
+
 	index = open('index.html', 'rb')
 	content = index.read()
 	return web.Response(body=content)
 
 async def wshandler(request):
+	print('got request: {}'.format(request))
+	
 	app = request.app
 	ws. web.WebSocketResponse()
 	await ws.prepare(request)

@@ -6,7 +6,7 @@ $().ready(function () {
 	$('#btnConnect').on('click', function() {
 		$("#status").text("connecting");
 
-		var ws_url = "ws://hawkleon.com:8080/connect";
+		var ws_url = "ws://hawkleon.com:8008/connect";
 		ws = new WebSocket(ws_url);
 		ws.onopen = function() {
 			$('#status').text("connected");
