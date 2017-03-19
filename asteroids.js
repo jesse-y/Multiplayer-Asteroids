@@ -58,125 +58,77 @@ function main() {
 	var now = Date.now();
 	var dt = (now - lastTime) / 1000.0;
 
-	poll_input();
+	update(dt);
+	render();
 
 	lastTime = now;
 	requestAnimFrame(main);
 }
 
 var player = {
-	posx: 0,
-	posy: 0,
-	angle: 0,
+	x: 320,
+	y: 240,
+	angle: 0
 }
 
+var playerSpeed = 150;
+var playerRotSpeed = 5.0;
 
+function update(dt) {
+	if (window.input.isDown('UP')) {
+		//player.y -= playerSpeed * dt;
+		player.x += playerSpeed * dt * Math.sin(player.angle);
+		player.y += playerSpeed * dt * Math.cos(player.angle);
+	}
+	if (window.input.isDown('DOWN')) {
+		//player.y += playerSpeed * dt;
+		player.x -= playerSpeed * dt * Math.sin(player.angle);
+		player.y -= playerSpeed * dt * Math.cos(player.angle);
+	}
+	if (window.input.isDown('LEFT')) {
+		//player.x -= playerSpeed * dt * Math.cos(player.angle);
+		player.angle += playerRotSpeed * dt;
+	}
+	if (window.input.isDown('RIGHT')) {
+		//player.x += playerSpeed * dt * Math.cos(player.angle);
+		player.angle -= playerRotSpeed * dt;
+	}
+}
+
+function render() {
+	document.getElementById('debug').innerHTML = '[x: ' + 
+	Math.floor(player.x) + ', y: ' + Math.floor(player.y) + ', angle: ' + player.angle + ']';
+	ctx.fillStyle = '#D9D9D9';
+	ctx.fillRect(0,0,canvas.width, canvas.height);
+
+	px = 50 * Math.sin(player.angle);
+	py = 50 * Math.cos(player.angle);
+
+	ctx.save();
+	ctx.translate(player.x, player.y);
+	ctx.rotate(Math.PI/180*player.angle);
+
+	ctx.fillStyle = '#2176ff';
+	ctx.fillRect(-10,-10,20,20);
+
+	ctx.beginPath();
+	ctx.moveTo(0,0);
+	ctx.lineTo(px, py);
+	ctx.stroke();
+	ctx.restore();
+}
 
 show_menu();
 
 //------------------------------------------------------------------------------------
 //-HELPER FUNCTIONS-------------------------------------------------------------------
 //------------------------------------------------------------------------------------
-function poll_input() {
-	console.log(window.input.allKeys());
-}
-
 function show_menu() {
 	ctx.fillStyle = '#D9D9D9';
 	ctx.fillRect(0,0,canvas.width, canvas.height);
+	console.log(canvas.width, canvas.height);
 };
 
 function print_status(message) {
 	document.getElementById('status').innerHTML = message;
 };
-
-/*
-var ws;
-$().ready(function () {
-	//change status code check if javascript has successfully loaded
-	$('#status').text('scripts loaded');
-
-	var app = new Asteroids_App(document.getElementById('app'), 640, 480);
-
-	$(document).keypress(function(event) {
-		var code = event.keyCode;
-		if (!code && event.charCode)
-			code = event.charCode;
-
-		if (ws && ws.readyState == WebSocket.OPEN) {
-			ws.send(code);
-			event.preventDefault();
-		} else {
-			$('#status').text('connection is closed');
-		}
-	});
-
-	$('#btnDisconnect').on('click', function() {
-		ws.close();
-	});
-});
-
-function Asteroids_App(elem, width, height) {
-	this.canvas = document.createElement('canvas');
-	this.canvas.id = 'viewport';
-	this.ctx = this.canvas.getContext('2d');
-
-	elem.appendChild(this.canvas);
-
-	this.start_page();
-
-	//add event listeners
-	$('#btnConnect, #btnConnectLocal').on('click', function() {
-		$("#status").text("connecting");
-
-		if (this.id == 'btnConnectLocal') {
-			var ws_url = "ws://localhost:8080/connect";
-		} else {
-			var ws_url = "ws://hawkleon.com:8008/connect";
-		}
-		ws = new WebSocket(ws_url);
-		ws.onopen = function() {
-			$('#status').text("connected");
-			this.game_page();
-		};
-		ws.onmessage = function (e) {
-			$('#status').text(e.data);
-		};
-		ws.onerror = function (e) {
-			$('#status').text(e.message);
-		};
-		ws.onclose = function (e) {
-			$('#status').text("disconnected");
-		};
-	});
-
-	this.canvas = $('#viewport')[0];
-	this.ctx = this.canvas.getContext('2d');
-	this.start_page();
-
-};
-
-Asteroids_App.prototype.start_page = function() {
-	$('#controls').show();
-	this.ctx.fillStyle = '#D9D9D9';
-	this.ctx.fillRect(0,0,this.canvas.width, this.canvas.height);
-}
-
-Asteroids_App.prototype.game_page = function() {
-	$('#controls').hide();
-
-}
-
-document.addEventListener('keydown', function(e) {
-	var code = e.keyCode;
-	if (!code &&e.charCode) {
-		code = e.charCode;
-	}
-	if (ws && ws.readyState == WebSocket.OPEN) {
-		ws.send(code);
-		e.preventDefault();
-	} else {
-		print_status('connection is closed');
-	}
-});
-*/
