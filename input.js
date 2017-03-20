@@ -1,5 +1,9 @@
 (function () {
 	var keys = {};
+	var mouse = {
+		x: 0,
+		y:0
+	};
 
 	function setKey(event, status) {
 		var code = event.keyCode;
@@ -32,7 +36,11 @@
 	});
 	document.addEventListener('blur', function () {
 		keys= {};
-	})
+	});
+	document.addEventListener('mousemove', function(e) {
+		mouse.x = e.clientX;
+		mouse.y = e.clientY;
+	});
 
 	window.input = {
 		isDown: function(key) {
@@ -40,6 +48,12 @@
 		},
 		allKeys: function() {
 			return keys;
+		},
+		mouseX: function() {
+			return mouse.x;
+		},
+		mouseY: function() {
+			return mouse.y;
 		}
 	};
 })();

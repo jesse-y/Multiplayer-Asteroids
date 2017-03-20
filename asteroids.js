@@ -66,38 +66,46 @@ function main() {
 }
 
 var player = {
-	x: 320,
-	y: 240,
+	x: canvas.width/2,
+	y: canvas.height/2,
 	angle: 0
 }
 
-var playerSpeed = 150;
-var playerRotSpeed = 5.0;
+var playerSpeed = 200;
 
 function update(dt) {
 	if (window.input.isDown('UP')) {
-		//player.y -= playerSpeed * dt;
-		player.x += playerSpeed * dt * Math.sin(player.angle);
-		player.y += playerSpeed * dt * Math.cos(player.angle);
+		player.y -= playerSpeed * dt;
+		//player.x += playerSpeed * dt * Math.sin(player.angle);
+		//player.y += playerSpeed * dt * Math.cos(player.angle);
 	}
 	if (window.input.isDown('DOWN')) {
-		//player.y += playerSpeed * dt;
-		player.x -= playerSpeed * dt * Math.sin(player.angle);
-		player.y -= playerSpeed * dt * Math.cos(player.angle);
+		player.y += playerSpeed * dt;
+		//player.x -= playerSpeed * dt * Math.sin(player.angle);
+		//player.y -= playerSpeed * dt * Math.cos(player.angle);
 	}
 	if (window.input.isDown('LEFT')) {
-		//player.x -= playerSpeed * dt * Math.cos(player.angle);
-		player.angle += playerRotSpeed * dt;
+		player.x -= playerSpeed * dt;
+		//player.angle += playerRotSpeed * dt;
 	}
 	if (window.input.isDown('RIGHT')) {
-		//player.x += playerSpeed * dt * Math.cos(player.angle);
-		player.angle -= playerRotSpeed * dt;
+		player.x += playerSpeed * dt;
+		//player.angle -= playerRotSpeed * dt;
 	}
+	var rect = canvas.getBoundingClientRect();
+	cx = window.input.mouseX() - rect.left;
+	cy = window.input.mouseY() - rect.top;
+
+	player.angle = Math.atan2((cx-player.x), (cy-player.y));
 }
 
 function render() {
-	document.getElementById('debug').innerHTML = '[x: ' + 
-	Math.floor(player.x) + ', y: ' + Math.floor(player.y) + ', angle: ' + player.angle + ']';
+	document.getElementById('debug').innerHTML = '[x: ' + Math.floor(player.x) + 
+	', y: ' + Math.floor(player.y) + 
+	', angle: ' + player.angle + 
+	', mouseX: ' + window.input.mouseX() + 
+	', mouseY: ' + window.input.mouseY() + ']';
+	
 	ctx.fillStyle = '#D9D9D9';
 	ctx.fillRect(0,0,canvas.width, canvas.height);
 
@@ -106,7 +114,6 @@ function render() {
 
 	ctx.save();
 	ctx.translate(player.x, player.y);
-	ctx.rotate(Math.PI/180*player.angle);
 
 	ctx.fillStyle = '#2176ff';
 	ctx.fillRect(-10,-10,20,20);
