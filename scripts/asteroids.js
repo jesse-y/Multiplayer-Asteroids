@@ -1,8 +1,10 @@
 //checking that script file has been found
 window.print_msg('status', 'scripts loaded');
 
+var ws;
 window.CS = new connect_screen();
 window.GS = new game_screen();
+window.LS = new lobby_screen();
 
 function connect_screen() {
 	this.init = function() {
@@ -29,12 +31,8 @@ function connect_screen() {
 				ws_url = 'ws://hawkleon.com:8008/connect';
 			}
 			ws = new WebSocket(ws_url);
-			ws.onopen = function () {
-				window.print_msg('status', 'connected');
-			};
-			ws.onmessage = function (e) {
-				window.print_msg('status', e.data);
-			};
+			ws.onopen = open_handler;
+			ws.onmessage = message_handler;
 			ws.onerror = function (e) {
 				window.print_msg('status', e.message);
 			};
@@ -65,7 +63,61 @@ function game_screen() {
 		gs_canvas.id = 'viewport';
 
 		document.getElementById('app').appendChild(gs_canvas);
+	};
+
+	this.init();
+}
+
+function lobby_screen() {
+	this.init = function() {
+		var ls_div = document.createElement('div');
+		ls_div.id = 'lobby_screen';
+
+		var ls_h1 = document.createElement('h1');
+		ls_h1.appendChild(document.createTextNode('Finding Match ...'));
+
+		var ls_table = this.create_table(
+			[['new_player01'], ['new_player02'],['new_player03'],['new_player04']]
+		);
+
+		ls_div.appendChild(ls_h1);
+		ls_div.appendChild(ls_table);
+		document.getElementById('app').appendChild(ls_div);
+	}
+	this.create_table = function(users_array) {
+		var table = document.createElement('table');
+		table.border = '1px';
+		users_array.forEach(function(entry) {
+			var tr = document.createElement('tr');
+			entry.forEach(function(entry) {
+				var td = document.createElement('td');
+				td.appendChild(document.createTextNode(entry));
+				tr.appendChild(td);
+			});
+			table.appendChild(tr);
+		});
+		return table;
 	}
 
 	this.init();
+}
+
+function open_handler(e) {
+	window.print_msg('status', 'connected');
+	var username = document.getElementById('username_textbox').value;
+	send_message(['new_user', username]);
+
+	window.hide('connect_screen');
+	window.show('lobby_screen');
+}
+
+function message_handler(e) {
+	window.print_msg('status', 'got new message');
+	console.log(e.data);
+	//var msg = JSON.parse(e.data);
+	//console.log(msg);
+}
+
+function send_message(msg) {
+	ws.send(JSON.stringify(msg));
 }
