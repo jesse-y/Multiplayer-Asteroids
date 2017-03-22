@@ -31,7 +31,6 @@ document.getElementById('btnConnect').addEventListener('click', function(e) {
 	ws = new WebSocket(ws_url);
 	ws.onopen = function () {
 		print_status('connected');
-		
 		main();
 	};
 	ws.onmessage = function (e) {
@@ -109,19 +108,29 @@ function render() {
 	ctx.fillStyle = '#D9D9D9';
 	ctx.fillRect(0,0,canvas.width, canvas.height);
 
-	px = 50 * Math.sin(player.angle);
-	py = 50 * Math.cos(player.angle);
+	px = 40 * Math.sin(player.angle);
+	py = 40 * Math.cos(player.angle);
 
 	ctx.save();
 	ctx.translate(player.x, player.y);
 
-	ctx.fillStyle = '#2176ff';
-	ctx.fillRect(-10,-10,20,20);
-
+	//aiming line
 	ctx.beginPath();
 	ctx.moveTo(0,0);
 	ctx.lineTo(px, py);
 	ctx.stroke();
+
+	ctx.rotate(-player.angle);
+
+	//player is a triangle
+	ctx.fillStyle = '#2176ff';
+	ctx.beginPath();
+	ctx.moveTo(0,20);
+	ctx.lineTo(14,-14);
+	ctx.lineTo(-14,-14);
+	ctx.lineTo(0,20);
+	ctx.fill();
+
 	ctx.restore();
 }
 
