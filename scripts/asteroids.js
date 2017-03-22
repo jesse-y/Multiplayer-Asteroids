@@ -1,6 +1,7 @@
 //checking that script file has been found
 window.print_msg('status', 'scripts loaded');
 
+var username = '';
 var ws;
 window.CS = new connect_screen();
 window.GS = new game_screen();
@@ -69,6 +70,7 @@ function game_screen() {
 }
 
 function lobby_screen() {
+	var ls_table_id = 'lobby_table';
 	this.init = function() {
 		var ls_div = document.createElement('div');
 		ls_div.id = 'lobby_screen';
@@ -76,9 +78,8 @@ function lobby_screen() {
 		var ls_h1 = document.createElement('h1');
 		ls_h1.appendChild(document.createTextNode('Finding Match ...'));
 
-		var ls_table = this.create_table(
-			[['new_player01'], ['new_player02'],['new_player03'],['new_player04']]
-		);
+		var ls_table = this.create_table([username]);
+		ls_table.id = ls_table_id;
 
 		ls_div.appendChild(ls_h1);
 		ls_div.appendChild(ls_table);
@@ -86,17 +87,26 @@ function lobby_screen() {
 	}
 	this.create_table = function(users_array) {
 		var table = document.createElement('table');
+
 		table.border = '1px';
 		users_array.forEach(function(entry) {
+			console.log(entry);
 			var tr = document.createElement('tr');
-			entry.forEach(function(entry) {
-				var td = document.createElement('td');
-				td.appendChild(document.createTextNode(entry));
-				tr.appendChild(td);
-			});
+			var td = document.createElement('td');
+			td.appendChild(document.createTextNode(entry));
+			tr.appendChild(td);
 			table.appendChild(tr);
 		});
 		return table;
+	}
+	this.update_user_list = function(users_array) {
+		var table = this.create_table(users_array);
+		table.id = ls_table_id;
+
+		document.getElementById('lobby_screen').replaceChild(
+			table, 
+			document.getElementById(ls_table_id)
+		);
 	}
 
 	this.init();
@@ -104,15 +114,18 @@ function lobby_screen() {
 
 function open_handler(e) {
 	window.print_msg('status', 'connected');
-	var username = document.getElementById('username_textbox').value;
+
+	username = document.getElementById('username_textbox').value;
+	window.LS.update_user_list([username, '...', '...', '...']);
 	send_message(['new_user', username]);
+
 
 	window.hide('connect_screen');
 	window.show('lobby_screen');
 }
 
 function message_handler(e) {
-	window.print_msg('status', 'got new message');
+	window.print_msg('status', 'got new message: '+ e.data);
 	console.log(e.data);
 	//var msg = JSON.parse(e.data);
 	//console.log(msg);
