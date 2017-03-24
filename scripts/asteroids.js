@@ -8,6 +8,7 @@ var MSG_JOIN = 'nm01';
 var MSG_QUIT = 'nm02';
 var MSG_MOVE = 'nm03';
 var MSG_G_STATE = 'nm04';
+var MSG_START = 'nm05';
 
 var username = '';
 var ws;
@@ -136,6 +137,11 @@ function lobby_screen() {
 		delete usernames_dict[uid];
 		this.update_table();
 	}
+	this.reset = function() {
+		uid_list = [];
+		usernames_dict = {};
+		this.update_table();
+	}
 
 	this.init();
 }
@@ -154,25 +160,27 @@ function message_handler(e) {
 	window.print_msg('status', 'got new message: '+ e.data);
 	var msg;
 
-	try {
-		msg = JSON.parse(e.data);
-		//get network message code if it exists
-		var nm = msg[0];
-		if (check_nm.test(nm)) {
-			switch (String(nm)) {
-				case MSG_JOIN:
-					window.LS.add_user(msg.slice(1)); break;
-				case MSG_QUIT:
-					window.LS.del_user(msg[1]); break;
-				case 
-				default:
-					console.log('failed to recognise nm code: '+msg); break;
-			}
-		} else {
-			console.log('nm is not a network code: ' + msg)
+	try { msg = JSON.parse(e.data) }
+	catch (except) { /*console.log(except.message, except.stack, e.data); */return; }
+
+	var nm = msg[0];
+	if (check_nm.test(nm)) {
+		switch (String(nm)) {
+			case MSG_JOIN:
+				window.LS.add_user(msg.slice(1)); break;
+			case MSG_QUIT:
+				window.LS.del_user(msg[1]); break;
+			case MSG_START:
+				window.hide('lobby_screen');
+				window.LS.reset();
+				window.GC.init();
+				break;
+
+			default:
+				console.log('failed to recognise nm code: '+msg); break;
 		}
-	} catch (except) {
-		console.log(except.message, except.stack);
+	} else {
+		console.log('nm is not a network code: ' + msg)
 	}
 }
 

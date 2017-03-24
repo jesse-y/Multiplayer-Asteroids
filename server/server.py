@@ -29,6 +29,9 @@ async def wshandler(request):
 			data = json.loads(msg.data)
 			if type(data) != list:
 				continue
+			if user and data[0] == MSG_MOVE:
+				app['in_game'].dispatch_move(user, data[1:])
+				
 			if not user:
 				if data[0] == MSG_JOIN:
 					user = new_user(app, data[1], ws)

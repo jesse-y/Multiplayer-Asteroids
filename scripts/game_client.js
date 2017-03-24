@@ -26,10 +26,9 @@
 
 	//main function
 	var lastTime;
+	var paused;
 	function main() {
-		if (!ws || ws.readyState == WebSocket.CLOSED) {
-			return;
-		}
+		if (paused) { return }
 
 		var now = Date.now();
 		var dt = (now - lastTime) / 1000.0;
@@ -65,6 +64,11 @@
 		cy = window.input.mouseY() - rect.top;
 
 		player.angle = Math.atan2((cx-player.x), (cy-player.y));
+
+		if (player.x < 0) { player.x = 0 }
+		if (player.x > 640) { player.x = 640 }
+		if (player.y < 0) { player.y = 0}
+		if (player.y > 480) { player.y = 480}
 	}
 
 	function render() {
@@ -103,12 +107,18 @@
 		ctx.restore();
 	}
 
-	show_menu();
+	reset_screen();
 
+	window.GC = {
+		init: function() {
+			console.log('starting game client');
+			main();
+		},
+	}
 	//------------------------------------------------------------------------------------
 	//-HELPER FUNCTIONS-------------------------------------------------------------------
 	//------------------------------------------------------------------------------------
-	function show_menu() {
+	function reset_screen() {
 		ctx.fillStyle = '#D9D9D9';
 		ctx.fillRect(0,0,canvas.width, canvas.height);
 		console.log(canvas.width, canvas.height);
