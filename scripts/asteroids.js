@@ -1,6 +1,14 @@
 //checking that script file has been found
 window.print_msg('status', 'scripts loaded');
 
+//network message codes and regex to identify them
+var check_nm = new RegExp('^nm[0-9]{2}$', 'i');
+var MSG_ERROR = 'nm00';
+var MSG_JOIN = 'nm01';
+var MSG_QUIT = 'nm02';
+var MSG_MOVE = 'nm03';
+var MSG_G_STATE = 'nm04';
+
 var username = '';
 var ws;
 window.CS = new connect_screen();
@@ -71,6 +79,8 @@ function game_screen() {
 
 function lobby_screen() {
 	var ls_table_id = 'lobby_table';
+	var uid_list = [];
+	var usernames_dict = {};
 	this.init = function() {
 		var ls_div = document.createElement('div');
 		ls_div.id = 'lobby_screen';
@@ -78,35 +88,53 @@ function lobby_screen() {
 		var ls_h1 = document.createElement('h1');
 		ls_h1.appendChild(document.createTextNode('Finding Match ...'));
 
-		var ls_table = this.create_table([username]);
+		var ls_table = this.create_table(uid_list);
 		ls_table.id = ls_table_id;
 
 		ls_div.appendChild(ls_h1);
 		ls_div.appendChild(ls_table);
 		document.getElementById('app').appendChild(ls_div);
 	}
-	this.create_table = function(users_array) {
+	this.create_table = function(uid_list) {
 		var table = document.createElement('table');
 
 		table.border = '1px';
-		users_array.forEach(function(entry) {
-			console.log(entry);
+		uid_list.forEach(function(entry) {
 			var tr = document.createElement('tr');
 			var td = document.createElement('td');
-			td.appendChild(document.createTextNode(entry));
+			td.appendChild(document.createTextNode(usernames_dict[entry]));
 			tr.appendChild(td);
 			table.appendChild(tr);
 		});
 		return table;
 	}
-	this.update_user_list = function(users_array) {
-		var table = this.create_table(users_array);
+	this.update_table = function() {
+		var table = this.create_table(uid_list);
 		table.id = ls_table_id;
 
 		document.getElementById('lobby_screen').replaceChild(
 			table, 
 			document.getElementById(ls_table_id)
 		);
+	}
+	this.add_user = function(input) {
+		for (var i = 0; i < input.length; i += 2) {
+			var uid = input[i];
+			var username = input[i+1];
+			if (usernames_dict.hasOwnProperty(uid)) {
+				continue;
+			} else {
+				uid_list.push(uid);
+				usernames_dict[uid] = username;
+			}
+		}
+		this.update_table();
+	}
+	this.del_user = function(uid) {
+		var index = uid_list.indexOf(uid);
+		uid_list.splice(index, 1);
+		delete usernames_dict[uid];
+		this.update_table();
 	}
 
 	this.init();
@@ -116,9 +144,7 @@ function open_handler(e) {
 	window.print_msg('status', 'connected');
 
 	username = document.getElementById('username_textbox').value;
-	window.LS.update_user_list([username, '...', '...', '...']);
-	send_message(['new_user', username]);
-
+	send_message([MSG_JOIN, username]);
 
 	window.hide('connect_screen');
 	window.show('lobby_screen');
@@ -126,9 +152,28 @@ function open_handler(e) {
 
 function message_handler(e) {
 	window.print_msg('status', 'got new message: '+ e.data);
-	console.log(e.data);
-	//var msg = JSON.parse(e.data);
-	//console.log(msg);
+	var msg;
+
+	try {
+		msg = JSON.parse(e.data);
+		//get network message code if it exists
+		var nm = msg[0];
+		if (check_nm.test(nm)) {
+			switch (String(nm)) {
+				case MSG_JOIN:
+					window.LS.add_user(msg.slice(1)); break;
+				case MSG_QUIT:
+					window.LS.del_user(msg[1]); break;
+				case 
+				default:
+					console.log('failed to recognise nm code: '+msg); break;
+			}
+		} else {
+			console.log('nm is not a network code: ' + msg)
+		}
+	} catch (except) {
+		console.log(except.message, except.stack);
+	}
 }
 
 function send_message(msg) {

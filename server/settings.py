@@ -4,7 +4,7 @@ WORLD_Y = 480
 
 #game settings
 GAME_SPEED = 30
-MAX_PLAYERS = 1
+MAX_PLAYERS = 3
 PLAYER_SPEED = 200
 
 #app settings
