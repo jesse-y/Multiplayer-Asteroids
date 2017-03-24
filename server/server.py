@@ -5,7 +5,7 @@ import json
 
 import settings
 from id_manager import IdManager, IdManagerException
-from datatypes import User, MSG_ERRA, MSG_JOIN
+from datatypes import User, MSG_ERROR, MSG_JOIN
 from game import Game
 
 async def handle(request):
