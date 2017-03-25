@@ -1,16 +1,12 @@
 from collections import namedtuple
 
 User = namedtuple('User', 'uid username ws')
-Move = namedtuple('Move', 'user keys tick')
+Move = namedtuple('Move', 'user tick keys')
 
-Box = namedtuple('Box', 'w h')
-Position = namedtuple('Position', 'x, y, a')
+Position = namedtuple('Position', 'x, y')
+Vector = namedtuple('Vector', 'x y')
 
-class GameObject:
-	def __init__(self, x=0, y=0, a=0):
-		self.x = x
-		self.y = y
-		self.a = a
+Rectangle = namedtuple('Rectangle', 'x y w h')
 
 #network messages
 MSG_ERROR = 'nm00'

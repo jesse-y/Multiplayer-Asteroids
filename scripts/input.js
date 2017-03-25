@@ -22,6 +22,8 @@
 			case 39:
 			case 68:
 				key = 'RIGHT'; break;
+			case 27:
+				key = 'ESCAPE'; break;
 			default:
 				key = String.fromCharCode(code);
 		}

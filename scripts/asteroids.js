@@ -3,18 +3,13 @@ window.print_msg('status', 'scripts loaded');
 
 //network message codes and regex to identify them
 var check_nm = new RegExp('^nm[0-9]{2}$', 'i');
-var MSG_ERROR = 'nm00';
-var MSG_JOIN = 'nm01';
-var MSG_QUIT = 'nm02';
-var MSG_MOVE = 'nm03';
-var MSG_G_STATE = 'nm04';
-var MSG_START = 'nm05';
 
 var username = '';
 var ws;
 window.CS = new connect_screen();
 window.GS = new game_screen();
 window.LS = new lobby_screen();
+window.GC = new game_client(ws)
 
 function connect_screen() {
 	this.init = function() {
@@ -48,6 +43,8 @@ function connect_screen() {
 			};
 			ws.onclose = function (e) {
 				window.print_msg('status', 'disconnected');
+				window.GC.reset_screen();
+				window.show('connect_screen');
 			};
 		});
 
@@ -123,6 +120,7 @@ function lobby_screen() {
 			var uid = input[i];
 			var username = input[i+1];
 			if (usernames_dict.hasOwnProperty(uid)) {
+				console.log('add_user function failed, key already exists: ' + uid);
 				continue;
 			} else {
 				uid_list.push(uid);
@@ -150,7 +148,7 @@ function open_handler(e) {
 	window.print_msg('status', 'connected');
 
 	username = document.getElementById('username_textbox').value;
-	send_message([MSG_JOIN, username]);
+	send_message([window.netm.MSG_JOIN, username]);
 
 	window.hide('connect_screen');
 	window.show('lobby_screen');
@@ -166,21 +164,26 @@ function message_handler(e) {
 	var nm = msg[0];
 	if (check_nm.test(nm)) {
 		switch (String(nm)) {
-			case MSG_JOIN:
-				window.LS.add_user(msg.slice(1)); break;
-			case MSG_QUIT:
-				window.LS.del_user(msg[1]); break;
-			case MSG_START:
+			case window.netm.MSG_JOIN:
+				window.LS.add_user(msg.slice(1));
+				break;
+			case window.netm.MSG_QUIT:
+				window.LS.del_user(msg[1]);
+				break;
+			case window.netm.MSG_START:
 				window.hide('lobby_screen');
 				window.LS.reset();
 				window.GC.init();
+				break;
+			case window.netm.MSG_G_STATE:
+				window.GC.state_update(msg.slice(1));
 				break;
 
 			default:
 				console.log('failed to recognise nm code: '+msg); break;
 		}
 	} else {
-		console.log('nm is not a network code: ' + msg)
+		console.log('var "nm" is not a network code: ' + msg)
 	}
 }
 

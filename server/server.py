@@ -5,7 +5,8 @@ import json
 
 import settings
 from id_manager import IdManager, IdManagerException
-from datatypes import User, MSG_ERROR, MSG_JOIN
+from datatypes import User, MSG_ERROR, MSG_JOIN, MSG_MOVE
+from player import Player
 from game import Game
 
 async def handle(request):
@@ -20,43 +21,45 @@ async def wshandler(request):
 	ws = web.WebSocketResponse()
 	await ws.prepare(request)
 
-	user = None
+	player = None
 	while True:
 		msg = await ws.receive()
 		if msg.tp == web.MsgType.text:
-			print('Got message {}'.format(msg.data))
+			#print('Got message {}'.format(msg.data))
 
 			data = json.loads(msg.data)
 			if type(data) != list:
 				continue
-			if user and data[0] == MSG_MOVE:
-				app['in_game'].dispatch_move(user, data[1:])
-				
-			if not user:
+			#update moves if the player is ingame
+			if player and player in app['in_game'] and data[0] == MSG_MOVE:
+				player.input(data[1:])
+
+			#assign this websocket as a player and add to matchmaking queue
+			if not player:
 				if data[0] == MSG_JOIN:
-					user = new_user(app, data[1], ws)
-			else:
-				ws.send_str('Server: message={}'.format(msg.data))
+					player = new_player(app, data[1], ws)
+			
+			#ws.send_str('Server: message={}'.format(msg.data))
 		elif msg.tp == web.MsgType.close or msg.tp == web.MsgType.error:
 			break
 
-	if user:
-		disconnect_user(app, user)
-		print('disconnect: uid={}, username={}'.format(user.uid, user.username))
+	if player:
+		disconnect_player(app, player)
+		print('disconnect: uid={}, username={}'.format(player.user.uid, player.user.username))
 	return ws
 
-async def manage_users(app):
+async def manage_players(app):
 	game = None
 	while True:
-		user = await app['searching'].get()
+		player = await app['searching'].get()
 
 		if not game:
 			gid = app['gidm'].assign_id()
 			game = Game(game_id=gid)
 			app['games'][game] = game
 		
-		game.new_player(user)
-		app['in_game'][user] = game
+		game.join(player)
+		app['in_game'][player] = game
 
 		if game.ready:
 			asyncio.ensure_future(game_loop(app, game))
@@ -70,37 +73,37 @@ async def game_loop(app, game):
 		if game.finished:
 			break
 		await asyncio.sleep(1/settings.GAME_SPEED)
+	
 	print('game_{}> finished'.format(game.game_id))
 	del app['games'][game]
 	app['gidm'].release_id(game.game_id)
 	for player in game.players.values():
-		player.ws.close()
+		player.user.ws.close()
 
-def new_user(app, username, ws):
+def new_player(app, username, ws):
 	try:
 		uid = app['uidm'].assign_id()
 	except IdManagerException as e:
 		print(str(e))
-		msg = json.dumps([MSG_ERRA,'max users reached'])
+		msg = json.dumps([MSG_ERROR,'max users reached'])
 		ws.send_str(msg)
 		return None
-	user = User(uid, username, ws)
-	app['searching'].put_nowait(user)
+	player = Player(User(uid, username, ws))
+	app['searching'].put_nowait(player)
 	
-	return user
+	return player
 
-def disconnect_user(app, user):
-	app['uidm'].release_id(user.uid)
-	if user in app['in_game']:
-		app['in_game'][user].disconnect_player(user)
-		del app['in_game'][user]
+def disconnect_player(app, player):
+	app['uidm'].release_id(player.user.uid)
+	if player in app['in_game']:
+		app['in_game'][player].disconnect_player(player)
+		del app['in_game'][player]
 
 async def reporting(app):
 	while True:
 		print('IN GAME USERS:')
-		for user in app['in_game']:
-			print('   >user: uid={}, username={}, game={}'.format(
-				user.uid, user.username, app['in_game'][user].game_id))
+		for player in app['in_game']:
+			print('{}: {}'.format(app['in_game'][player], player))
 		await asyncio.sleep(3)
 
 if __name__ == '__main__':
@@ -112,7 +115,7 @@ if __name__ == '__main__':
 	app['uidm'] = IdManager(max_id=settings.MAX_USERS)
 	app['gidm'] = IdManager()
 
-	asyncio.ensure_future(manage_users(app))
+	asyncio.ensure_future(manage_players(app))
 	#asyncio.ensure_future(reporting(app))
 
 	app.router.add_route('GET', '/connect', wshandler)

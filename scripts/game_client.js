@@ -1,4 +1,6 @@
-(function () {
+function game_client (ws) {
+	this.ws = ws;
+
 	var requestAnimFrame = (function(){
     return window.requestAnimationFrame       ||
         window.webkitRequestAnimationFrame ||
@@ -41,23 +43,31 @@
 	}
 
 	function update(dt) {
+		var commands = [];
 		if (window.input.isDown('UP')) {
-			player.y -= playerSpeed * dt;
+			//player.y -= playerSpeed * dt;
 			//player.x += playerSpeed * dt * Math.sin(player.angle);
 			//player.y += playerSpeed * dt * Math.cos(player.angle);
+			commands = commands.concat('UP');
 		}
 		if (window.input.isDown('DOWN')) {
-			player.y += playerSpeed * dt;
+			//player.y += playerSpeed * dt;
 			//player.x -= playerSpeed * dt * Math.sin(player.angle);
 			//player.y -= playerSpeed * dt * Math.cos(player.angle);
+			commands = commands.concat('DOWN');
 		}
 		if (window.input.isDown('LEFT')) {
-			player.x -= playerSpeed * dt;
+			//player.x -= playerSpeed * dt;
 			//player.angle += playerRotSpeed * dt;
+			commands = commands.concat('LEFT');
 		}
 		if (window.input.isDown('RIGHT')) {
-			player.x += playerSpeed * dt;
+			//player.x += playerSpeed * dt;
 			//player.angle -= playerRotSpeed * dt;
+			commands = commands.concat('RIGHT');
+		}
+		if (window.input.isDown('ESCAPE')) {
+			this.ws.close();
 		}
 		var rect = canvas.getBoundingClientRect();
 		cx = window.input.mouseX() - rect.left;
@@ -69,6 +79,11 @@
 		if (player.x > 640) { player.x = 640 }
 		if (player.y < 0) { player.y = 0}
 		if (player.y > 480) { player.y = 480}
+
+		if (this.ws && this.ws.readyState === this.ws.OPEN && commands.length > 0) {
+			//console.log(commands);
+			this.ws.send(JSON.stringify([window.netm.MSG_MOVE].concat(commands)));
+		}
 	}
 
 	function render() {
@@ -107,21 +122,26 @@
 		ctx.restore();
 	}
 
-	reset_screen();
-
-	window.GC = {
-		init: function() {
-			console.log('starting game client');
-			main();
-		},
+	this.init = function() {
+		console.log('starting game client');
+		paused = false;
+		main();
 	}
-	//------------------------------------------------------------------------------------
-	//-HELPER FUNCTIONS-------------------------------------------------------------------
-	//------------------------------------------------------------------------------------
-	function reset_screen() {
+	this.state_update = function(msg) {
+		console.log('new game state');
+		msg.forEach(function(entry) {
+			//console.log(entry);
+			player.x = entry.x
+			player.y = entry.y
+		});
+	}
+	this.reset_screen = function() {
+		paused = true;
 		ctx.fillStyle = '#D9D9D9';
 		ctx.fillRect(0,0,canvas.width, canvas.height);
+
 		console.log(canvas.width, canvas.height);
 	};
-	
-})();
+
+	this.reset_screen();	
+}

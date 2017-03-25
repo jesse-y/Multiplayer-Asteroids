@@ -2,22 +2,11 @@ import settings
 import json
 import time
 from collections import deque
+
 from player import Player
-from datatypes import MSG_JOIN, MSG_QUIT, MSG_ERROR, MSG_START
-from datatypes import Move, GameObject
+from datatypes import MSG_JOIN, MSG_QUIT, MSG_ERROR, MSG_START, MSG_G_STATE
 
 class Game:
-
-	keymap = {
-		37:'LEFT',
-		65:'LEFT',
-		38:'UP',
-		87:'UP',
-		39:'RIGHT',
-		68:'RIGHT',
-		40:'DOWN',
-		83:'DOWN'
-	}
 
 	def __init__(self, game_id=0):
 		self.game_id = game_id
@@ -29,82 +18,69 @@ class Game:
 		self.players = {}
 		self.moves = {}
 
-		self.ships = {}
-		self.bullets = []
-		self.asteroids = []
-
 		self.tick = 0
 
 	def __hash__(self):
 		return hash(self.game_id)
 
-	def new_player(self, user):
-		#build players list to send to new player and current players of the new player
+	def __str__(self):
+		return 'game_{}'.format(self.game_id)
+
+	def join(self, new_player):
+		#build players list to send to joining player, and notify existing players
 		p_list = []
 		for player in self.players.values():
-			print('game_{}>p{}={}: added new player'.format(self.game_id, user.uid, user.username))
-			player.ws.send_str(json.dumps([MSG_JOIN, user.uid, user.username]))
-			p_list += [player.uid, player.username]
+			self.notify_single(player, [MSG_JOIN, new_player.user.uid, new_player.user.username])
+			p_list += [player.user.uid, player.user.username]
 
-		print('game_{}>sending player list to p{}={}'.format(self.game_id, user.uid, user.username))
-		user.ws.send_str(json.dumps([MSG_JOIN, user.uid, user.username] + p_list))
+		self.players[new_player] = new_player
 
-		self.players[user] = user
+		print('{}>join: sending player list to {}'.format(self, new_player))
+		self.notify_single(new_player, [MSG_JOIN, new_player.user.uid, new_player.user.username] + p_list)
 
 		if len(self.players) == settings.MAX_PLAYERS:
 			self.ready = True
 
-	def disconnect_player(self, player):
-		if player in self.players:
-			del self.players[player]
+
+	def disconnect_player(self, quitter):
+		if quitter in self.players:
+			del self.players[quitter]
 		else:
 			return
 
 		if len(self.players) < 1:
 			self.finished = True
 			return
-		for ingame_player in self.players.values():
-			print('game_{}>disconnect_player: send all disconnect player'.format(self.game_id))
-			ingame_player.ws.send_str(json.dumps([MSG_QUIT, player.uid, player.username]))
 
-	def dispatch_move(self, user, *args):
-		print(args)
+		print('{}>disconnect_player: notify all players that {} disconnected'.format(self, quitter))
+		for ingame_player in self.players.values():
+			self.notify_single(ingame_player, [MSG_QUIT, quitter.user.uid, quitter.user.username])
 
 	def start(self):
 		self.create_world()
-
-		print('game_{}>start: sending start messages to all players')
-		for player in self.players.values():
-			msg = json.dumps([MSG_START])
-			player.ws.send_str(msg)
+		print('{}>start: sending start messages to all players'.format(self))
+		self.notify_all([MSG_START])
 
 	def create_world(self):
-		for player in self.players.values():
-			self.moves[player] = deque()
-			self.ships[player] = GameObject(x=320,y=400,a=3.14)
-		self.asteroids.append(GameObject(x=320, y=100, a=0))
+		pass
 
 	def update_entities(self, dt):
-		for p in self.players.values():
-			ship = self.ships[p]
-			if not self.moves[p]:
-				continue
-			#parse keys. more than one key might be pressed per tick
-			for key in self.moves[p].keys:
-				if self.keymap.get(key) == 'UP':
-					ship.y -= settings.GAME_SPEED * dt
-				if self.keymap.get(key) == 'DOWN':
-					ship.y += settings.GAME_SPEED * dt
-				if self.keymap.get(key) == 'LEFT':
-					ship.x -= settings.GAME_SPEED * dt
-				if self.keymap.get(key) == 'RIGHT':
-					ship.x += settings.GAME_SPEED * dt
+		for player in self.players.values():
+			player.go.move(dt=dt, speed=settings.PLAYER_SPEED)
 
-		for a in self.asteroids:
-			if a.x < 0:
-				
+	def check_collisions(self):
+		pass
 
-
+	def build_state(self):
+		msg = []
+		for player in self.players.values():
+			entity = {
+				'x':player.go.pos.x,
+				'y':player.go.pos.y,
+				'uid':player.user.uid
+			}
+			msg.append(entity)
+		return msg
 
 	def next_frame(self):
 		dt = time.time() - self.last_time
@@ -112,7 +88,23 @@ class Game:
 			return
 
 		self.update_entities(dt)
-		self.check_collisions(dt)
+		self.check_collisions()
 
 		self.tick += 1
 		self.last_time = time.time()
+
+		msg = self.build_state()
+		print('{}>next_frame: sending state {}'.format(self, msg))
+		self.notify_all([MSG_G_STATE] + msg)
+
+	def notify_single(self, player, msg):
+		success = False
+		if player.user.ws:
+			player.user.ws.send_str(json.dumps(msg))
+			success = True
+		return success
+
+	def notify_all(self, msg):
+		for player in self.players.values():
+			if not self.notify_single(player, msg):
+				print('{}>notify_all: could not send to {}'.format(self, player))
