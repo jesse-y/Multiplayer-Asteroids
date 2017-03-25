@@ -173,6 +173,7 @@ function message_handler(e) {
 			case window.netm.MSG_START:
 				window.hide('lobby_screen');
 				window.LS.reset();
+				window.GC.pid = msg[1]
 				window.GC.init();
 				break;
 			case window.netm.MSG_G_STATE:

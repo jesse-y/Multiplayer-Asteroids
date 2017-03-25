@@ -21,8 +21,11 @@ class Player:
 		'RIGHT': Vector(1, 0)
 	}
 
-	def __init__(self, user, go=GameObject()):
+	def __init__(self, user, go=GameObject(), pid=-1):
+		#the user id is specific to each server process
 		self.user = user
+		#the player id is specific to each game the player is in
+		self.pid = pid
 		self.go = go
 
 	def __hash__(self):
@@ -38,3 +41,7 @@ class Player:
 			dx, dy = self.movemap.get(move)
 			x, y = x + dx, y + dy
 		self.go.vec = Vector(x, y)
+
+	def build(self):
+		entity = self.go.build()
+		entity['pid'] = self.pid

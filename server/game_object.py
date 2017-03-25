@@ -1,4 +1,4 @@
-from math import sin, cos
+from math import sin, cos, floor
 from datatypes import Position, Vector, Rectangle
 
 class GameObject:
@@ -12,9 +12,12 @@ class GameObject:
 
 	def move(self, dt=1, speed=1):
 		x, y = self.pos.x, self.pos.y
-		x = speed * dt * self.vec.x
-		y = speed * dt * self.vec.y
+		x += floor(speed * dt * self.vec.x)
+		y += floor(speed * dt * self.vec.y)
 		self.pos = Position(x, y)
+
+		#reset the vector to wait for additional input
+		self.vec = Vector(0,0)
 
 	def change_dir(self, angle, dt=1, speed=1):
 		x, y = self.vec.x, self.vec.y
@@ -24,3 +27,9 @@ class GameObject:
 
 	def colliding(self, other):
 		pass
+
+	def build(self):
+		return {
+			'x':self.pos.x,
+			'y':self.pos.y
+		}

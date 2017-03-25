@@ -5,11 +5,13 @@ from collections import deque
 
 from player import Player
 from datatypes import MSG_JOIN, MSG_QUIT, MSG_ERROR, MSG_START, MSG_G_STATE
+from id_manager import IdManager, IdManagerException
 
 class Game:
 
 	def __init__(self, game_id=0):
 		self.game_id = game_id
+		self.pidm = IdManager(max_id=settings.MAX_PLAYERS)
 		self.ready = False
 		self.finished = False
 
@@ -33,6 +35,11 @@ class Game:
 			self.notify_single(player, [MSG_JOIN, new_player.user.uid, new_player.user.username])
 			p_list += [player.user.uid, player.user.username]
 
+		try:
+			new_player.pid = self.pidm.assign_id()
+		except IdManagerException as e:
+			print(str(e))
+			return
 		self.players[new_player] = new_player
 
 		print('{}>join: sending player list to {}'.format(self, new_player))
@@ -41,10 +48,11 @@ class Game:
 		if len(self.players) == settings.MAX_PLAYERS:
 			self.ready = True
 
-
 	def disconnect_player(self, quitter):
 		if quitter in self.players:
 			del self.players[quitter]
+			self.pidm.release_id(quitter.pid)
+			quitter.pid = -1
 		else:
 			return
 
@@ -59,7 +67,8 @@ class Game:
 	def start(self):
 		self.create_world()
 		print('{}>start: sending start messages to all players'.format(self))
-		self.notify_all([MSG_START])
+		for player in self.players.values():
+			self.notify_single(player, [MSG_START, player.pid])
 
 	def create_world(self):
 		pass
@@ -74,12 +83,7 @@ class Game:
 	def build_state(self):
 		msg = []
 		for player in self.players.values():
-			entity = {
-				'x':player.go.pos.x,
-				'y':player.go.pos.y,
-				'uid':player.user.uid
-			}
-			msg.append(entity)
+			msg.append(player.build())
 		return msg
 
 	def next_frame(self):
@@ -94,7 +98,6 @@ class Game:
 		self.last_time = time.time()
 
 		msg = self.build_state()
-		print('{}>next_frame: sending state {}'.format(self, msg))
 		self.notify_all([MSG_G_STATE] + msg)
 
 	def notify_single(self, player, msg):

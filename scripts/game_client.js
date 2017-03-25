@@ -1,5 +1,6 @@
 function game_client (ws) {
 	this.ws = ws;
+	this.pid = -1;
 
 	var requestAnimFrame = (function(){
     return window.requestAnimationFrame       ||
@@ -45,24 +46,24 @@ function game_client (ws) {
 	function update(dt) {
 		var commands = [];
 		if (window.input.isDown('UP')) {
-			//player.y -= playerSpeed * dt;
+			player.y -= playerSpeed * dt;
 			//player.x += playerSpeed * dt * Math.sin(player.angle);
 			//player.y += playerSpeed * dt * Math.cos(player.angle);
 			commands = commands.concat('UP');
 		}
 		if (window.input.isDown('DOWN')) {
-			//player.y += playerSpeed * dt;
+			player.y += playerSpeed * dt;
 			//player.x -= playerSpeed * dt * Math.sin(player.angle);
 			//player.y -= playerSpeed * dt * Math.cos(player.angle);
 			commands = commands.concat('DOWN');
 		}
 		if (window.input.isDown('LEFT')) {
-			//player.x -= playerSpeed * dt;
+			player.x -= playerSpeed * dt;
 			//player.angle += playerRotSpeed * dt;
 			commands = commands.concat('LEFT');
 		}
 		if (window.input.isDown('RIGHT')) {
-			//player.x += playerSpeed * dt;
+			player.x += playerSpeed * dt;
 			//player.angle -= playerRotSpeed * dt;
 			commands = commands.concat('RIGHT');
 		}
