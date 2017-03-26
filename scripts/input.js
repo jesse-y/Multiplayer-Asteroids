@@ -45,10 +45,10 @@
 	});
 
 	window.input = {
-		isDown: function(key) {
+		is_down: function(key) {
 			return keys[key.toUpperCase()];
 		},
-		allKeys: function() {
+		all_keys: function() {
 			return keys;
 		},
 		mouseX: function() {
@@ -56,6 +56,25 @@
 		},
 		mouseY: function() {
 			return mouse.y;
+		},
+		get_commands: function() {
+			var commands = [];
+			if (keys['UP']) {
+				commands.push('UP');
+			}
+			if (keys['DOWN']) {
+				commands.push('DOWN');
+			}
+			if (keys['LEFT']) {
+				commands.push('LEFT');
+			}
+			if (keys['RIGHT']) {
+				commands.push('RIGHT');
+			}
+			if (keys['ESCAPE']) {
+				commands.push('ESCAPE');
+			}
+			return commands;
 		}
 	};
 })();

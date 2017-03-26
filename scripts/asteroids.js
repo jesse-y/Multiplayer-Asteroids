@@ -9,7 +9,7 @@ var ws;
 window.CS = new connect_screen();
 window.GS = new game_screen();
 window.LS = new lobby_screen();
-window.GC = new game_client(ws)
+window.GC = new game_client(ws);
 
 function connect_screen() {
 	this.init = function() {

@@ -19,7 +19,6 @@ class Game:
 		self.last_time = time.time()
 
 		self.players = {}
-		self.moves = {}
 
 		self.tick = 0
 
@@ -66,44 +65,14 @@ class Game:
 			self.notify_single(ingame_player, [MSG_QUIT, quitter.user.uid, quitter.user.username])
 
 	def start(self):
-		self.create_world()
 		print('{}>start: sending start messages to all players'.format(self))
 		for player in self.players.values():
 			self.notify_single(player, [MSG_START, player.pid])
-
-	def create_world(self):
-		for player in self.players.values():
-			player.go.pos = Position(320,240)
-
-	def update_entities(self, dt):
-		for player in self.players.values():
-			#player.go.change_dir(dt=dt)
-			#player.go.move(dt=dt, speed=settings.PLAYER_SPEED)
-			pass
-
-	def check_collisions(self):
-		pass
-
-	def build_state(self):
-		msg = []
-		for player in self.players.values():
-			msg.append(player.build())
-		return msg
 
 	def next_frame(self):
 		dt = time.time() - self.last_time
 		if self.finished:
 			return
-
-		self.update_entities(dt)
-		self.check_collisions()
-
-		self.tick += 1
-		self.last_time = time.time()
-
-		msg = self.build_state()
-		print(msg)
-		self.notify_all([MSG_G_STATE, self.tick] + msg)
 
 	def notify_single(self, player, msg):
 		success = False

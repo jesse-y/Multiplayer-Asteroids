@@ -1,174 +1,110 @@
-function game_client (ws) {
-	this.ws = ws;
-	this.pid = -1;
+function game_client(_ws) {
+	var ws = _ws;
+	//public variables
+	this.pid;
 
-	var requestAnimFrame = (function(){
+	//speed at which the client will send commands
+	var client_speed = 1.0 / 30;
+	//speed at which snapshots are expected to arrive
+	var server_speed = 1.0 / 20;
+	//browser refresh rate
+	var framerate = 1000 / 60
+
+	var world_specs = {
+		'x':640,
+		'y':480
+	}
+
+	var game = new world(world_specs);
+
+	//animation frame function, runs main function at the speed of framerate
+	var get_anim_frame = (function(){
     return window.requestAnimationFrame       ||
         window.webkitRequestAnimationFrame ||
         window.mozRequestAnimationFrame    ||
         window.oRequestAnimationFrame      ||
         window.msRequestAnimationFrame     ||
         function(callback){
-            window.setTimeout(callback, 1000 / 60);
+            window.setTimeout(callback, framerate);
         };
 	})();
 
-	//create and instantiate canvas object
-	var canvas = document.getElementById('viewport')
-	canvas.width = 640;
-	canvas.height = 480;
-	var ctx = canvas.getContext('2d');
-
-	var player_speed = 200;
-
-	var player = {
-		x: canvas.width/2,
-		y: canvas.height/2,
-		angle: 0
-	}
-
-	//main function
-	var lastTime;
 	var paused;
-	var fm = new FrameManager();
+	var last_time;
+	var last_sent;
+	var game_time;
+
+	var snapshots = [];
+
 	function main() {
 		if (paused) { return }
 
 		var now = Date.now();
-		var dt = (now - lastTime) / 1000.0;
+		var dt = (now - last_time) / 1000.0;
+		game_time += dt;
 
-		update(dt);
-		render();
+		//send commands
+		last_sent += dt;
+		if (last_sent >= client_speed) {
+			send_commands(window.input.get_commands());
+			last_sent = 0;
+		}
 
-		lastTime = now;
-		requestAnimFrame(main);
+		iterate(dt);
+
+		last_time = now;
+		get_anim_frame(main);
 	}
 
-	function update(dt) {
-		var commands = [];
-		if (window.input.isDown('UP')) {
-			commands.push('UP');
-			player.y -= player_speed * dt;
-		}
-		if (window.input.isDown('DOWN')) {
-			commands.push('DOWN');
-			player.y += player_speed * dt;
-		}
-		if (window.input.isDown('LEFT')) {
-			commands.push('LEFT');
-			player.x -= player_speed * dt;
-		}
-		if (window.input.isDown('RIGHT')) {
-			commands.push('RIGHT');
-			player.x += player_speed * dt;
-		}
-		if (window.input.isDown('ESCAPE')) {
-			this.ws.close();
-		}
-		var rect = canvas.getBoundingClientRect();
-		cx = window.input.mouseX() - rect.left;
-		cy = window.input.mouseY() - rect.top;
+	function send_commands(commands) {
+		send_message([window.netm.MSG_MOVE, commands])
+	}
 
-		var dir = Math.atan2((cx-player.x), (cy-player.y)); 
-		var new_angle = false;
-		if (dir != player.angle || dir == 'NaN') {
-			player.angle = dir;
-			new_angle = true;
+	function iterate(dt) {
+		var new_ss = false;
+		if (snapshots.length > 2) {
+			//a new snapshot has arrived, drop old snapshot. take only the last 2
+			snapshots = snapshots.slice(snapshots.length - 2);
+			new_ss = true;
 		}
-
-		if (player.x < 0) { player.x = 0 }
-		if (player.x > 640) { player.x = 640 }
-		if (player.y < 0) { player.y = 0}
-		if (player.y > 480) { player.y = 480}
-
-		
-		if (this.ws && this.ws.readyState === this.ws.OPEN) {
-			var c_state = {
-				'x':Math.floor(player.x),
-				'y':Math.floor(player.y),
-				//'a':player.angle
+		if (snapshots.length == 2) {
+			if (new_ss) {
+				//we have enough snapshots to render. do not interpolate for now
+				game.render(snapshots[0], snapshots[1], false);
+			} else {
+				game.iterate(dt);
 			}
-			fm.advance(c_state);
-			var move = {
-				'moves':commands,
-				'angle':player.angle,
-				'c_tick':fm.get_tick()
-			}
-			this.ws.send(JSON.stringify([window.netm.MSG_MOVE, move]));
 		}
 	}
 
-	function render() {
-		document.getElementById('debug').innerHTML = '[x: ' + Math.floor(player.x) + 
-		', y: ' + Math.floor(player.y) + 
-		', angle: ' + player.angle + 
-		', mouseX: ' + window.input.mouseX() + 
-		', mouseY: ' + window.input.mouseY() + ']';
-		
-		ctx.fillStyle = '#D9D9D9';
-		ctx.fillRect(0,0,canvas.width, canvas.height);
-
-		px = 40 * Math.sin(player.angle);
-		py = 40 * Math.cos(player.angle);
-
-		ctx.save();
-		ctx.translate(player.x, player.y);
-
-		//aiming line
-		ctx.beginPath();
-		ctx.moveTo(0,0);
-		ctx.lineTo(px, py);
-		ctx.stroke();
-
-		ctx.rotate(-player.angle);
-
-		//player is a triangle
-		ctx.fillStyle = '#2176ff';
-		ctx.beginPath();
-		ctx.moveTo(0,20);
-		ctx.lineTo(14,-14);
-		ctx.lineTo(-14,-14);
-		ctx.lineTo(0,20);
-		ctx.fill();
-
-		ctx.restore();
+	this.new_snapshot = function(state) {
+		snapshots.push(new Snapshot(game_time, state));
 	}
 
 	this.init = function() {
-		console.log('starting game client');
+		//set variables used in main
 		paused = false;
+		last_time = Date.now();
+		last_sent = 0;
+		game_time = 0;
 		main();
 	}
-	this.state_update = function(msg) {
-		var s_tick = msg[0];
-		//gamestate is a big list of all items to keep track of
-		msg.slice(1).forEach(function(entry) {
-			//if the item in the list is a player object..
-			if (entry.hasOwnProperty('pid')) {
-				var success = fm.reconcile(entry.c_tick, entry.state);
-				if (success != undefined) {
-					if (success) {
-						console.log('successful reconciliation: '+success);
-					} else {
-						console.log('failed reconciliation: '+success);	
-					}
-				}
-				player.x = entry.state.x;
-				player.y = entry.state.y;
-				//player.angle = entry.state.a;
 
-				window.print_msg('network', 'unacked inputs:'+fm.unacked());
-			}
-		});
-	}
-	this.reset_screen = function() {
+	this.reset = function () {
 		paused = true;
-		fm.reset();
-		ctx.fillStyle = '#D9D9D9';
-		ctx.fillRect(0,0,canvas.width, canvas.height);
+		game.reset();
+	}
 
-		console.log(canvas.width, canvas.height);
-	};
+	function send_message(msg) {
+		ws.send(JSON.stringify(msg));
+	}
+}
 
-	this.reset_screen();	
+//-------------------------------------------------------------------//
+//--WORLD SNAPSHOTS--------------------------------------------------//
+//-------------------------------------------------------------------//
+
+function Snapshot(timestamp, game_objects) {
+	this.timestamp = timestamp;
+	this.game_objects = game_objects;
 }
