@@ -72,25 +72,23 @@ function game_client(_ws) {
 	}
 
 	function iterate(dt) {
-		var new_ss = false;
 		if (snapshots.length > 2) {
-			//a new snapshot has arrived, drop old snapshot. take only the last 2
 			snapshots = snapshots.slice(snapshots.length - 2);
-			new_ss = true;
+			game.render(snapshots[0], snapshots[1], false);
 		}
-		if (snapshots.length == 2) {
-			if (new_ss || !game.exists()) {
-				//we have enough snapshots to render. do not interpolate for now
-				game.render(snapshots[0], snapshots[1], false);
-			} else {
-				console.log('new render request');
-				game.iterate(dt);
-			}
+		if (game.exists()) {
+			game.iterate(dt);
 		}
 	}
 
+	var last_update = Date.now();
 	this.state_update = function(state) {
-		window.print_msg('GC', 'GC:state_update  '+JSON.stringify(state));
+		last_update = Date.now() - last_update;
+
+		window.print_msg('GC', 'GC: '+(1000/last_update)+' state_update  '+JSON.stringify(state));
+
+		last_update = Date.now();
+
 		var s_time = state.shift();
 		//console.log('server time: '+s_time);
 		this.new_snapshot(s_time, state);
@@ -115,7 +113,7 @@ function game_client(_ws) {
 	}
 
 	function send_message(msg) {
-		if (this.ws.readyState === this.ws.CLOSED) { return }
+		if (this.ws.readyState == this.ws.CLOSED) { return }
 		this.ws.send(JSON.stringify(msg));
 	}
 }

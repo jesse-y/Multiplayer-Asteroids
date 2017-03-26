@@ -3,7 +3,6 @@ function world(world_specs) {
 	var canvas = document.getElementById('viewport');
 	canvas.width = world_specs.x;
 	canvas.height = world_specs.y;
-
 	//context of the document element
 	var ctx = canvas.getContext('2d');
 
@@ -17,9 +16,13 @@ function world(world_specs) {
 	var from;
 	var to;
 
+	var prev = 0;
 	this.iterate = function(dt) {
+		prev += dt;
 		frame_start += dt;
 		if (frame_start >= to.timestamp) {
+			window.print_msg('WORLD', 'WORLD_RENDER: '+Math.floor(1 /prev));
+			prev = 0;
 			_render(to);
 		}
 	}
