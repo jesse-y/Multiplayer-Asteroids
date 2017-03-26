@@ -46,24 +46,24 @@ function game_client (ws) {
 	function update(dt) {
 		var commands = [];
 		if (window.input.isDown('UP')) {
-			player.y -= playerSpeed * dt;
+			//player.y -= playerSpeed * dt;
 			//player.x += playerSpeed * dt * Math.sin(player.angle);
 			//player.y += playerSpeed * dt * Math.cos(player.angle);
 			commands = commands.concat('UP');
 		}
 		if (window.input.isDown('DOWN')) {
-			player.y += playerSpeed * dt;
+			//player.y += playerSpeed * dt;
 			//player.x -= playerSpeed * dt * Math.sin(player.angle);
 			//player.y -= playerSpeed * dt * Math.cos(player.angle);
 			commands = commands.concat('DOWN');
 		}
 		if (window.input.isDown('LEFT')) {
-			player.x -= playerSpeed * dt;
+			//player.x -= playerSpeed * dt;
 			//player.angle += playerRotSpeed * dt;
 			commands = commands.concat('LEFT');
 		}
 		if (window.input.isDown('RIGHT')) {
-			player.x += playerSpeed * dt;
+			//player.x += playerSpeed * dt;
 			//player.angle -= playerRotSpeed * dt;
 			commands = commands.concat('RIGHT');
 		}
@@ -74,16 +74,26 @@ function game_client (ws) {
 		cx = window.input.mouseX() - rect.left;
 		cy = window.input.mouseY() - rect.top;
 
-		player.angle = Math.atan2((cx-player.x), (cy-player.y));
+		var dir = Math.atan2((cx-player.x), (cy-player.y)); 
+		var new_angle = false;
+		if (dir != player.angle) {
+			player.angle = dir;
+			new_angle = true;
+		}
+
+		move = {
+			'moves':commands,
+			'angle':player.angle
+		}
 
 		if (player.x < 0) { player.x = 0 }
 		if (player.x > 640) { player.x = 640 }
 		if (player.y < 0) { player.y = 0}
 		if (player.y > 480) { player.y = 480}
 
-		if (this.ws && this.ws.readyState === this.ws.OPEN && commands.length > 0) {
+		if (this.ws && this.ws.readyState === this.ws.OPEN && (commands.length > 0 || new_angle)) {
 			//console.log(commands);
-			this.ws.send(JSON.stringify([window.netm.MSG_MOVE].concat(commands)));
+			this.ws.send(JSON.stringify([window.netm.MSG_MOVE, move]));
 		}
 	}
 
@@ -132,8 +142,9 @@ function game_client (ws) {
 		console.log('new game state');
 		msg.forEach(function(entry) {
 			//console.log(entry);
-			player.x = entry.x
-			player.y = entry.y
+			player.x = entry.x;
+			player.y = entry.y;
+			player.angle = entry.a;
 		});
 	}
 	this.reset_screen = function() {

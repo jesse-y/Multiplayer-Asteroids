@@ -107,6 +107,9 @@ async def reporting(app):
 		await asyncio.sleep(3)
 
 if __name__ == '__main__':
+	event_loop = asyncio.get_event_loop()
+	event_loop.set_debug(True)
+
 	app = web.Application()
 	
 	app['in_game'] = {}

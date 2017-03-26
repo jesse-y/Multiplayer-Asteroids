@@ -34,8 +34,13 @@ class Player:
 	def __str__(self):
 		return 'p{}:{}'.format(self.user.uid, self.user.username)
 
-	def input(self, moves):
-		#print('{}>input: got instructions:{}'.format(self, moves))
+	def input(self, inputs):
+		#print('{}>input: got instructions:{}'.format(self, inputs))
+		angle = inputs[0]['angle']
+		moves = inputs[0]['moves']
+
+		self.go.angle = angle
+
 		x, y = 0, 0
 		for move in moves:
 			dx, dy = self.movemap.get(move)
@@ -45,3 +50,4 @@ class Player:
 	def build(self):
 		entity = self.go.build()
 		entity['pid'] = self.pid
+		return entity

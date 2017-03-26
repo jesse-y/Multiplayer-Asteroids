@@ -5,6 +5,7 @@ from collections import deque
 
 from player import Player
 from datatypes import MSG_JOIN, MSG_QUIT, MSG_ERROR, MSG_START, MSG_G_STATE
+from datatypes import Position
 from id_manager import IdManager, IdManagerException
 
 class Game:
@@ -71,10 +72,12 @@ class Game:
 			self.notify_single(player, [MSG_START, player.pid])
 
 	def create_world(self):
-		pass
+		for player in self.players.values():
+			player.go.pos = Position(320,240)
 
 	def update_entities(self, dt):
 		for player in self.players.values():
+			#player.go.change_dir(dt=dt)
 			player.go.move(dt=dt, speed=settings.PLAYER_SPEED)
 
 	def check_collisions(self):
