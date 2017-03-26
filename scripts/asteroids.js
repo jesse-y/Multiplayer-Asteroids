@@ -43,7 +43,7 @@ function connect_screen() {
 			};
 			ws.onclose = function (e) {
 				window.print_msg('status', 'disconnected');
-				window.GC.reset_screen();
+				window.GC.reset();
 				window.show('connect_screen');
 			};
 		});

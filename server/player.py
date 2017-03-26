@@ -30,7 +30,6 @@ class Player:
 		self.pid = pid
 		self.c_tick = c_tick
 		self.go = go
-		self.last_update = None
 
 	def __hash__(self):
 		return hash(self.user)
@@ -43,7 +42,7 @@ class Player:
 		#inputs is an array of 1 item as an artifact from the way javascript's JSON.stringify handles input
 		angle = inputs[0]['angle']
 		moves = inputs[0]['moves']
-		self.c_tick = inputs[0]['c_tick']
+		self.c_tick = inputs[0]['cl_time']
 
 		self.go.angle = angle
 
@@ -52,15 +51,6 @@ class Player:
 			dx, dy = self.movemap.get(move)
 			x, y = x + dx, y + dy
 		self.go.vec = Vector(x, y)
-
-		if not self.last_update:
-			self.last_update = time.time()
-			dt = 0
-		else:
-			dt = time.time() - self.last_update
-			self.last_update = time.time()
-
-		self.go.move(dt=dt, speed=settings.PLAYER_SPEED)
 
 
 	def build(self):

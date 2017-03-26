@@ -19,7 +19,7 @@ function world(world_specs) {
 	var from;
 	var to;
 
-	function iterate(dt) {
+	this.iterate = function(dt) {
 		frame_start += dt;
 		if (frame_start >= to.timestamp) {
 			_render(to);
@@ -34,6 +34,7 @@ function world(world_specs) {
 
 		//apply the render function for each object
 		snapshot.game_objects.forEach(function(entry) {
+			console.log(entry);
 			entry.render(ctx);
 		});
 	}
@@ -52,11 +53,20 @@ function world(world_specs) {
 		frame_start = from.timestamp;
 	}
 
+	this.exists = function() {
+		if (from == undefined || to == undefined) {
+			return false
+		} else {
+			return true
+		}
+	}
+
 	this.reset = function() {
 		ctx.fillStyle = '#D9D9D9';
 		ctx.fillRect(0,0,canvas.width, canvas.height);
 		console.log('reset screen, world coords:', canvas.width, canvas.height);
 	}
+	this.reset();
 }
 
 //-------------------------------------------------------------------//

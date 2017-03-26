@@ -1,5 +1,5 @@
 function game_client(_ws) {
-	var ws = _ws;
+	this.ws = _ws;
 	//public variables
 	this.pid;
 
@@ -57,7 +57,16 @@ function game_client(_ws) {
 	}
 
 	function send_commands(commands) {
-		send_message([window.netm.MSG_MOVE, commands])
+		if (window.input.is_down('ESCAPE')) {
+			ws.close();
+			return;
+		}
+		message = {
+			'moves':commands,
+			'angle':0,
+			'cl_time':game_time,
+		}
+		send_message([window.netm.MSG_MOVE, message]);
 	}
 
 	function iterate(dt) {
@@ -68,8 +77,9 @@ function game_client(_ws) {
 			new_ss = true;
 		}
 		if (snapshots.length == 2) {
-			if (new_ss) {
+			if (new_ss || !game.exists()) {
 				//we have enough snapshots to render. do not interpolate for now
+				console.log(snapshots);
 				game.render(snapshots[0], snapshots[1], false);
 			} else {
 				game.iterate(dt);
@@ -77,8 +87,14 @@ function game_client(_ws) {
 		}
 	}
 
-	this.new_snapshot = function(state) {
-		snapshots.push(new Snapshot(game_time, state));
+	this.state_update = function(state) {
+		var s_time = state.shift();
+		//console.log('server time: '+s_time);
+		this.new_snapshot(s_time, state);
+	}
+
+	this.new_snapshot = function(s_time, state) {
+		snapshots.push(new Snapshot(s_time, state));
 	}
 
 	this.init = function() {
@@ -96,7 +112,8 @@ function game_client(_ws) {
 	}
 
 	function send_message(msg) {
-		ws.send(JSON.stringify(msg));
+		if (this.ws.readyState === this.ws.CLOSED) { return }
+		this.ws.send(JSON.stringify(msg));
 	}
 }
 
