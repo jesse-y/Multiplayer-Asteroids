@@ -15,6 +15,12 @@ class GameObject:
 		x, y = self.pos.x, self.pos.y
 		x += floor(speed * dt * self.vec.x)
 		y += floor(speed * dt * self.vec.y)
+
+		if x > 640 : x = 640
+		if x < 0   : x = 0
+		if y > 480 : y = 480
+		if y < 0   : y = 0
+
 		#print('GO>move: x:{}->{}, y:{}->{}'.format(self.pos.x, x, self.pos.y, y))
 		self.pos = Position(int(x), int(y))
 

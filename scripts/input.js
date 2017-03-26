@@ -45,10 +45,10 @@
 	});
 
 	window.input = {
-		isDown: function(key) {
+		is_down: function(key) {
 			return keys[key.toUpperCase()];
 		},
-		allKeys: function() {
+		all_keys: function() {
 			return keys;
 		},
 		mouseX: function() {

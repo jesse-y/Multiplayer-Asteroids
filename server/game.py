@@ -21,7 +21,7 @@ class Game:
 		self.players = {}
 		self.moves = {}
 
-		self.tick = 0
+		self.game_time = 0.
 
 	def __hash__(self):
 		return hash(self.game_id)
@@ -69,7 +69,7 @@ class Game:
 		self.create_world()
 		print('{}>start: sending start messages to all players'.format(self))
 		for player in self.players.values():
-			self.notify_single(player, [MSG_START, player.pid])
+			self.notify_single(player, [MSG_START, player.pid, self.game_time])
 
 	def create_world(self):
 		for player in self.players.values():
@@ -90,19 +90,19 @@ class Game:
 		return msg
 
 	def next_frame(self):
-		dt = time.time() - self.last_time
 		if self.finished:
 			return
+
+		dt = time.time() - self.last_time
+		self.game_time += dt
 
 		self.update_entities(dt)
 		self.check_collisions()
 
-		self.tick += 1
 		self.last_time = time.time()
 
 		msg = self.build_state()
-		print(msg)
-		self.notify_all([MSG_G_STATE, self.tick] + msg)
+		self.notify_all([MSG_G_STATE, self.game_time] + msg)
 
 	def notify_single(self, player, msg):
 		success = False

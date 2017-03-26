@@ -48,8 +48,12 @@ class Player:
 
 		x, y = 0, 0
 		for move in moves:
-			dx, dy = self.movemap.get(move)
-			x, y = x + dx, y + dy
+			try:
+				dx, dy = self.movemap.get(move)
+				x, y = x + dx, y + dy
+			except:
+				print('p_{}:{}>input: invalid move: {}'.format(self.user.uid, self.user.username, move))
+				return
 		self.go.vec = Vector(x, y)
 
 

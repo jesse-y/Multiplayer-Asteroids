@@ -54,26 +54,7 @@ function game_client (ws) {
 	}
 
 	function update(dt) {
-		var commands = [];
-		if (window.input.isDown('UP')) {
-			commands.push('UP');
-			//player.y -= player_speed * dt;
-		}
-		if (window.input.isDown('DOWN')) {
-			commands.push('DOWN');
-			//player.y += player_speed * dt;
-		}
-		if (window.input.isDown('LEFT')) {
-			commands.push('LEFT');
-			//player.x -= player_speed * dt;
-		}
-		if (window.input.isDown('RIGHT')) {
-			commands.push('RIGHT');
-			//player.x += player_speed * dt;
-		}
-		if (window.input.isDown('ESCAPE')) {
-			this.ws.close();
-		}
+		var commands = window.input.get_commands();
 
 		var rect = canvas.getBoundingClientRect();
 		cx = window.input.mouseX() - rect.left;
@@ -90,7 +71,6 @@ function game_client (ws) {
 		if (player.x > 640) { player.x = 640 }
 		if (player.y < 0) { player.y = 0}
 		if (player.y > 480) { player.y = 480}
-
 		
 		if (this.ws && this.ws.readyState === this.ws.OPEN && (commands.length > 0 || new_angle)) {
 			var c_state = {
@@ -151,6 +131,7 @@ function game_client (ws) {
 		main();
 	}
 	this.state_update = function(msg) {
+		window.print_msg('APP', 'Game Time: '+Number(msg[0]).toFixed(2));
 		var s_tick = msg[0];
 		//gamestate is a big list of all items to keep track of
 		msg.slice(1).forEach(function(entry) {
