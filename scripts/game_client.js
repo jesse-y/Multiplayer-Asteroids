@@ -30,6 +30,7 @@ function game_client (ws) {
 	//main function
 	var lastTime;
 	var paused;
+	var fm = new FrameManager();
 	function main() {
 		if (paused) { return }
 
@@ -46,26 +47,16 @@ function game_client (ws) {
 	function update(dt) {
 		var commands = [];
 		if (window.input.isDown('UP')) {
-			//player.y -= playerSpeed * dt;
-			//player.x += playerSpeed * dt * Math.sin(player.angle);
-			//player.y += playerSpeed * dt * Math.cos(player.angle);
-			commands = commands.concat('UP');
+			commands.push('UP');
 		}
 		if (window.input.isDown('DOWN')) {
-			//player.y += playerSpeed * dt;
-			//player.x -= playerSpeed * dt * Math.sin(player.angle);
-			//player.y -= playerSpeed * dt * Math.cos(player.angle);
-			commands = commands.concat('DOWN');
+			commands.push('DOWN');
 		}
 		if (window.input.isDown('LEFT')) {
-			//player.x -= playerSpeed * dt;
-			//player.angle += playerRotSpeed * dt;
-			commands = commands.concat('LEFT');
+			commands.push('LEFT');
 		}
 		if (window.input.isDown('RIGHT')) {
-			//player.x += playerSpeed * dt;
-			//player.angle -= playerRotSpeed * dt;
-			commands = commands.concat('RIGHT');
+			commands.push('RIGHT');
 		}
 		if (window.input.isDown('ESCAPE')) {
 			this.ws.close();
@@ -76,14 +67,16 @@ function game_client (ws) {
 
 		var dir = Math.atan2((cx-player.x), (cy-player.y)); 
 		var new_angle = false;
-		if (dir != player.angle) {
+		if (dir != player.angle || dir == 'NaN') {
 			player.angle = dir;
 			new_angle = true;
 		}
 
+
 		move = {
 			'moves':commands,
-			'angle':player.angle
+			'angle':player.angle,
+			'c_tick':tick
 		}
 
 		if (player.x < 0) { player.x = 0 }
@@ -91,9 +84,17 @@ function game_client (ws) {
 		if (player.y < 0) { player.y = 0}
 		if (player.y > 480) { player.y = 480}
 
+		//only send a packet if the move has an update
 		if (this.ws && this.ws.readyState === this.ws.OPEN && (commands.length > 0 || new_angle)) {
-			//console.log(commands);
 			this.ws.send(JSON.stringify([window.netm.MSG_MOVE, move]));
+			console.log('advancing with following update data:');
+			console.log({'x':player.x,'y':player.y,'a':player.angle});
+			console.log('');
+			fm.advance({
+				'x':player.x,
+				'y':player.y,
+				'a':player.angle
+			});
 		}
 	}
 
@@ -139,16 +140,28 @@ function game_client (ws) {
 		main();
 	}
 	this.state_update = function(msg) {
-		console.log('new game state');
-		msg.forEach(function(entry) {
-			//console.log(entry);
-			player.x = entry.x;
-			player.y = entry.y;
-			player.angle = entry.a;
+		var s_tick = msg[0];
+		//gamestate is a big list of all items to keep track of
+		msg.slice(1).forEach(function(entry) {
+			//if the item in the list is a player object..
+			if (entry.hasOwnProperty('pid')) {
+				var success = fm.reconcile(entry.c_tick, entry.state)
+				console.log('-->state update: success='+success);
+				if (success == false) {
+					player.x = entry.state.x;
+					player.y = entry.state.y;
+					player.angle = entry.state.a;
+				}
+				console.log(entry);
+				console.log('');
+
+				window.print_msg('network', 'unacked inputs:'+fm.unacked());
+			}
 		});
 	}
 	this.reset_screen = function() {
 		paused = true;
+		fm.reset();
 		ctx.fillStyle = '#D9D9D9';
 		ctx.fillRect(0,0,canvas.width, canvas.height);
 

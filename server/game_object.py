@@ -21,7 +21,7 @@ class GameObject:
 		#reset the vector to wait for additional input
 		self.vec = Vector(0,0)
 
-	def change_dir(self, angle=None, dt=1, speed=1):
+	def change_dir(self, angle=0, dt=1, speed=1):
 		if angle is None: angle = self.angle
 		x, y = self.vec.x, self.vec.y
 		x += dt * speed * sin(angle)

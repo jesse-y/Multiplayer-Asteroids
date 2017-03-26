@@ -101,7 +101,8 @@ class Game:
 		self.last_time = time.time()
 
 		msg = self.build_state()
-		self.notify_all([MSG_G_STATE] + msg)
+		print(msg)
+		self.notify_all([MSG_G_STATE, self.tick] + msg)
 
 	def notify_single(self, player, msg):
 		success = False

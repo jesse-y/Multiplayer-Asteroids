@@ -21,11 +21,12 @@ class Player:
 		'RIGHT': Vector(1, 0)
 	}
 
-	def __init__(self, user, go=GameObject(), pid=-1):
+	def __init__(self, user, go=GameObject(), pid=-1, c_tick=1):
 		#the user id is specific to each server process
 		self.user = user
 		#the player id is specific to each game the player is in
 		self.pid = pid
+		self.c_tick = c_tick
 		self.go = go
 
 	def __hash__(self):
@@ -36,8 +37,10 @@ class Player:
 
 	def input(self, inputs):
 		#print('{}>input: got instructions:{}'.format(self, inputs))
+		#inputs is an array of 1 item as an artifact from the way javascript's JSON.stringify handles input
 		angle = inputs[0]['angle']
 		moves = inputs[0]['moves']
+		self.c_tick = inputs[0]['c_tick']
 
 		self.go.angle = angle
 
@@ -48,6 +51,9 @@ class Player:
 		self.go.vec = Vector(x, y)
 
 	def build(self):
-		entity = self.go.build()
+		entity = {}
+		entity['state'] = self.go.build()
 		entity['pid'] = self.pid
+		entity['c_tick'] = self.c_tick
+		entity['type'] = 'player'
 		return entity
