@@ -2,7 +2,7 @@ function game_client (ws) {
 	this.ws = ws;
 	this.pid = -1;
 
-	var requestAnimFrame = (function(){
+	var get_anim_frame = (function(){
     return window.requestAnimationFrame       ||
         window.webkitRequestAnimationFrame ||
         window.mozRequestAnimationFrame    ||
@@ -19,6 +19,7 @@ function game_client (ws) {
 	canvas.height = 480;
 	var ctx = canvas.getContext('2d');
 
+	var client_speed = 1 / 30;
 	var player_speed = 200;
 
 	var player = {
@@ -28,52 +29,61 @@ function game_client (ws) {
 	}
 
 	//main function
-	var lastTime;
+	var last_time;
+	var last_sent;
 	var paused;
-	var fm = new FrameManager();
 	function main() {
 		if (paused) { return }
 
 		var now = Date.now();
-		var dt = (now - lastTime) / 1000.0;
+		var dt = (now - last_time) / 1000.0;
 
-		update(dt);
+		window.print_msg('GC', 'GC==> framerate='+Math.floor(1/dt));
+
+		last_sent += dt;
+		if (last_sent >= client_speed) {
+			window.print_msg('GC2', 'GC==> cmd rate='+Math.floor(1/last_sent));
+			update(dt);
+			last_sent = 0.;
+		}
+
 		render();
 
-		lastTime = now;
-		requestAnimFrame(main);
+		last_time = now;
+		get_anim_frame(main);
 	}
 
 	function update(dt) {
 		var commands = [];
 		if (window.input.isDown('UP')) {
 			commands.push('UP');
-			player.y -= player_speed * dt;
+			//player.y -= player_speed * dt;
 		}
 		if (window.input.isDown('DOWN')) {
 			commands.push('DOWN');
-			player.y += player_speed * dt;
+			//player.y += player_speed * dt;
 		}
 		if (window.input.isDown('LEFT')) {
 			commands.push('LEFT');
-			player.x -= player_speed * dt;
+			//player.x -= player_speed * dt;
 		}
 		if (window.input.isDown('RIGHT')) {
 			commands.push('RIGHT');
-			player.x += player_speed * dt;
+			//player.x += player_speed * dt;
 		}
 		if (window.input.isDown('ESCAPE')) {
 			this.ws.close();
 		}
+
 		var rect = canvas.getBoundingClientRect();
 		cx = window.input.mouseX() - rect.left;
 		cy = window.input.mouseY() - rect.top;
 
-		var dir = Math.atan2((cx-player.x), (cy-player.y)); 
-		var new_angle = false;
-		if (dir != player.angle || dir == 'NaN') {
-			player.angle = dir;
-			new_angle = true;
+		var send_angle = false;
+		var new_angle = Math.atan2((cx-player.x), (cy-player.y));
+		if (new_angle != player.angle || new_angle == undefined) {
+			send_angle = true;
+			//player.angle = new_angle;
 		}
 
 		if (player.x < 0) { player.x = 0 }
@@ -82,17 +92,16 @@ function game_client (ws) {
 		if (player.y > 480) { player.y = 480}
 
 		
-		if (this.ws && this.ws.readyState === this.ws.OPEN) {
+		if (this.ws && this.ws.readyState === this.ws.OPEN && (commands.length > 0 || new_angle)) {
 			var c_state = {
 				'x':Math.floor(player.x),
 				'y':Math.floor(player.y),
-				//'a':player.angle
+				'a':player.angle
 			}
-			fm.advance(c_state);
 			var move = {
 				'moves':commands,
-				'angle':player.angle,
-				'c_tick':fm.get_tick()
+				'angle':new_angle,
+				'c_tick':Date.now()
 			}
 			this.ws.send(JSON.stringify([window.netm.MSG_MOVE, move]));
 		}
@@ -137,6 +146,8 @@ function game_client (ws) {
 	this.init = function() {
 		console.log('starting game client');
 		paused = false;
+		last_time = Date.now();
+		last_sent = 0.;
 		main();
 	}
 	this.state_update = function(msg) {
@@ -145,25 +156,14 @@ function game_client (ws) {
 		msg.slice(1).forEach(function(entry) {
 			//if the item in the list is a player object..
 			if (entry.hasOwnProperty('pid')) {
-				var success = fm.reconcile(entry.c_tick, entry.state);
-				if (success != undefined) {
-					if (success) {
-						console.log('successful reconciliation: '+success);
-					} else {
-						console.log('failed reconciliation: '+success);	
-					}
-				}
 				player.x = entry.state.x;
 				player.y = entry.state.y;
-				//player.angle = entry.state.a;
-
-				window.print_msg('network', 'unacked inputs:'+fm.unacked());
+				player.angle = entry.state.a;
 			}
 		});
 	}
 	this.reset_screen = function() {
 		paused = true;
-		fm.reset();
 		ctx.fillStyle = '#D9D9D9';
 		ctx.fillRect(0,0,canvas.width, canvas.height);
 
