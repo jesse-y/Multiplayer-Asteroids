@@ -78,7 +78,8 @@ class Game:
 	def update_entities(self, dt):
 		for player in self.players.values():
 			#player.go.change_dir(dt=dt)
-			player.go.move(dt=dt, speed=settings.PLAYER_SPEED)
+			#player.go.move(dt=dt, speed=settings.PLAYER_SPEED)
+			pass
 
 	def check_collisions(self):
 		pass

@@ -1,6 +1,8 @@
+import time
+
+import settings
 from datatypes import User, Vector
 from game_object import GameObject
-
 class Player:
 
 	keymap = {
@@ -28,6 +30,7 @@ class Player:
 		self.pid = pid
 		self.c_tick = c_tick
 		self.go = go
+		self.last_update = None
 
 	def __hash__(self):
 		return hash(self.user)
@@ -49,6 +52,16 @@ class Player:
 			dx, dy = self.movemap.get(move)
 			x, y = x + dx, y + dy
 		self.go.vec = Vector(x, y)
+
+		if not self.last_update:
+			self.last_update = time.time()
+			dt = 0
+		else:
+			dt = time.time() - self.last_update
+			self.last_update = time.time()
+
+		self.go.move(dt=dt, speed=settings.PLAYER_SPEED)
+
 
 	def build(self):
 		entity = {}

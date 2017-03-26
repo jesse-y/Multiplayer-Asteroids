@@ -16,7 +16,7 @@ class GameObject:
 		x += floor(speed * dt * self.vec.x)
 		y += floor(speed * dt * self.vec.y)
 		#print('GO>move: x:{}->{}, y:{}->{}'.format(self.pos.x, x, self.pos.y, y))
-		self.pos = Position(x, y)
+		self.pos = Position(int(x), int(y))
 
 		#reset the vector to wait for additional input
 		self.vec = Vector(0,0)
@@ -36,5 +36,5 @@ class GameObject:
 		return {
 			'x':self.pos.x,
 			'y':self.pos.y,
-			'a':self.angle
+			#'a':self.angle
 		}

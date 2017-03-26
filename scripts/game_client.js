@@ -19,7 +19,7 @@ function game_client (ws) {
 	canvas.height = 480;
 	var ctx = canvas.getContext('2d');
 
-	var playerSpeed = 200;
+	var player_speed = 200;
 
 	var player = {
 		x: canvas.width/2,
@@ -48,15 +48,19 @@ function game_client (ws) {
 		var commands = [];
 		if (window.input.isDown('UP')) {
 			commands.push('UP');
+			player.y -= player_speed * dt;
 		}
 		if (window.input.isDown('DOWN')) {
 			commands.push('DOWN');
+			player.y += player_speed * dt;
 		}
 		if (window.input.isDown('LEFT')) {
 			commands.push('LEFT');
+			player.x -= player_speed * dt;
 		}
 		if (window.input.isDown('RIGHT')) {
 			commands.push('RIGHT');
+			player.x += player_speed * dt;
 		}
 		if (window.input.isDown('ESCAPE')) {
 			this.ws.close();
@@ -72,29 +76,25 @@ function game_client (ws) {
 			new_angle = true;
 		}
 
-
-		move = {
-			'moves':commands,
-			'angle':player.angle,
-			'c_tick':tick
-		}
-
 		if (player.x < 0) { player.x = 0 }
 		if (player.x > 640) { player.x = 640 }
 		if (player.y < 0) { player.y = 0}
 		if (player.y > 480) { player.y = 480}
 
-		//only send a packet if the move has an update
-		if (this.ws && this.ws.readyState === this.ws.OPEN && (commands.length > 0 || new_angle)) {
+		
+		if (this.ws && this.ws.readyState === this.ws.OPEN) {
+			var c_state = {
+				'x':Math.floor(player.x),
+				'y':Math.floor(player.y),
+				//'a':player.angle
+			}
+			fm.advance(c_state);
+			var move = {
+				'moves':commands,
+				'angle':player.angle,
+				'c_tick':fm.get_tick()
+			}
 			this.ws.send(JSON.stringify([window.netm.MSG_MOVE, move]));
-			console.log('advancing with following update data:');
-			console.log({'x':player.x,'y':player.y,'a':player.angle});
-			console.log('');
-			fm.advance({
-				'x':player.x,
-				'y':player.y,
-				'a':player.angle
-			});
 		}
 	}
 
@@ -145,15 +145,17 @@ function game_client (ws) {
 		msg.slice(1).forEach(function(entry) {
 			//if the item in the list is a player object..
 			if (entry.hasOwnProperty('pid')) {
-				var success = fm.reconcile(entry.c_tick, entry.state)
-				console.log('-->state update: success='+success);
-				if (success == false) {
-					player.x = entry.state.x;
-					player.y = entry.state.y;
-					player.angle = entry.state.a;
+				var success = fm.reconcile(entry.c_tick, entry.state);
+				if (success != undefined) {
+					if (success) {
+						console.log('successful reconciliation: '+success);
+					} else {
+						console.log('failed reconciliation: '+success);	
+					}
 				}
-				console.log(entry);
-				console.log('');
+				player.x = entry.state.x;
+				player.y = entry.state.y;
+				//player.angle = entry.state.a;
 
 				window.print_msg('network', 'unacked inputs:'+fm.unacked());
 			}
