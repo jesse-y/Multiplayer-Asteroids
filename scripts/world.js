@@ -1,6 +1,4 @@
 function world(world_specs) {
-	var framerate = 1000 / 60;
-	
 	//document object to apply our render to
 	var canvas = document.getElementById('viewport');
 	canvas.width = world_specs.x;
@@ -34,9 +32,40 @@ function world(world_specs) {
 
 		//apply the render function for each object
 		snapshot.game_objects.forEach(function(entry) {
-			console.log(entry);
-			entry.render(ctx);
+			var state = entry.state;
+			if (entry.type == 'player') {
+				render_player(state.x, state.y, state.a, '#2176ff', ctx);
+			}
 		});
+	}
+
+	function render_player(x, y, a, colour, ctx) {
+		ctx.save();
+
+		//translate object to correct position
+		ctx.translate(x, y);
+
+		px = 50 * Math.sin(a);
+		py = 50 * Math.cos(a);
+
+		//aiming line
+		ctx.beginPath();
+		ctx.moveTo(0,0);
+		ctx.lineTo(px, py);
+		ctx.stroke();
+
+		ctx.rotate(-a);
+
+		//the ship is a triangle
+		ctx.fillStyle = colour;
+		ctx.beginPath();
+		ctx.moveTo(0,20);
+		ctx.lineTo(14,-14);
+		ctx.lineTo(-14,-14);
+		ctx.lineTo(0,20);
+		ctx.fill();
+
+		ctx.restore();
 	}
 
 	//public function to assign new snapshots to render
@@ -72,6 +101,8 @@ function world(world_specs) {
 //-------------------------------------------------------------------//
 //--GAME ENTITIES----------------------------------------------------//
 //-------------------------------------------------------------------//
+
+
 
 function Ship(_x, _y, _a, _colour) {
 	this.x = _x;

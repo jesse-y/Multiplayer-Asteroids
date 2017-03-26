@@ -36,5 +36,5 @@ class GameObject:
 		return {
 			'x':self.pos.x,
 			'y':self.pos.y,
-			#'a':self.angle
+			'a':self.angle
 		}

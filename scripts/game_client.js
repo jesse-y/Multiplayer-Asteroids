@@ -8,7 +8,7 @@ function game_client(_ws) {
 	//speed at which snapshots are expected to arrive
 	var server_speed = 1.0 / 20;
 	//browser refresh rate
-	var framerate = 1000 / 60
+	var framerate = 1000 / 60;
 
 	var world_specs = {
 		'x':640,
@@ -52,6 +52,8 @@ function game_client(_ws) {
 
 		iterate(dt);
 
+		window.print_msg('GC_time', 'GC_TIME: '+dt);
+
 		last_time = now;
 		get_anim_frame(main);
 	}
@@ -79,15 +81,16 @@ function game_client(_ws) {
 		if (snapshots.length == 2) {
 			if (new_ss || !game.exists()) {
 				//we have enough snapshots to render. do not interpolate for now
-				console.log(snapshots);
 				game.render(snapshots[0], snapshots[1], false);
 			} else {
+				console.log('new render request');
 				game.iterate(dt);
 			}
 		}
 	}
 
 	this.state_update = function(state) {
+		window.print_msg('GC', 'GC:state_update  '+JSON.stringify(state));
 		var s_time = state.shift();
 		//console.log('server time: '+s_time);
 		this.new_snapshot(s_time, state);
