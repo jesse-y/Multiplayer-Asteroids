@@ -2,11 +2,14 @@ from math import sin, cos, floor
 from datatypes import Position, Vector, Rectangle
 
 class GameObject:
-	def __init__(self, pos=Position(0,0), vec=Vector(0,0), rec=Rectangle(0,0,0,0), angle=0):
-		self.pos=pos
-		self.vec=vec
-		self.rec=rec
-		self.angle=angle
+	def __init__(self, pos=Position(0,0), vec=Vector(0,0), rec=Rectangle(0,0,0,0), angle=0, oid=None, obj_type=None):
+		self.pos = pos
+		self.vec = vec
+		self.rec = rec
+		self.angle = angle
+
+		self.oid = oid
+		self.type = obj_type
 
 	def __str__(self):
 		return '{} {} {}'.format(self.pos, self.vec, self.rec)
@@ -42,5 +45,7 @@ class GameObject:
 		return {
 			'x':self.pos.x,
 			'y':self.pos.y,
-			'a':self.angle
+			'a':self.angle,
+			'oid':self.oid,
+			'type':self.type
 		}

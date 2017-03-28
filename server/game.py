@@ -13,13 +13,14 @@ class Game:
 	def __init__(self, game_id=0):
 		self.game_id = game_id
 		self.pidm = IdManager(max_id=settings.MAX_PLAYERS)
+		self.oidm = IdManager()
 		self.ready = False
 		self.finished = False
 
 		self.last_time = time.time()
 
 		self.players = {}
-		self.moves = {}
+		self.entities = {}
 
 		self.game_time = 0.
 
@@ -87,6 +88,8 @@ class Game:
 		msg = []
 		for player in self.players.values():
 			msg.append(player.build())
+		for entity in self.entities.values():
+			msg.append(entity.build())
 		return msg
 
 	def next_frame(self):
