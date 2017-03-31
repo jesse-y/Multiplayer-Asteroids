@@ -68,6 +68,8 @@ function game_client (ws) {
 	}
 
 	function update(dt) {
+		if (!document.hasFocus()) return
+			
 		if (window.input.is_down('ESCAPE')) {
 			this.ws.close();
 			return;
@@ -100,6 +102,10 @@ function game_client (ws) {
 	}
 
 	function interpolate(dt) {
+		//render background
+		ctx.fillStyle = '#D9D9D9';
+		ctx.fillRect(0,0,canvas.width, canvas.height);
+
 		if (from == undefined || to == undefined) return
 		if (interp_frame == undefined) {
 			render(to);
@@ -115,6 +121,8 @@ function game_client (ws) {
 					fp = from.state.players[key].state;
 					tp = to.state.players[key].state;
 
+					console.log('handle player:'+key, player);
+
 					//tween translation
 					player.x = fp.x + ((tp.x-fp.x) * frac_t);
 					player.y = fp.y + ((tp.y-fp.y) * frac_t);
@@ -125,9 +133,11 @@ function game_client (ws) {
 					if (adiff > Math.PI) adiff -= 2*Math.PI;
 
 					player.a = fp.a + (adiff * frac_t);
+
+					render_ship(key, player, true);
 				}
 			}
-			render(interp_frame);
+			//render(interp_frame);
 		}
 	}
 

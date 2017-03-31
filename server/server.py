@@ -7,6 +7,7 @@ import settings
 from id_manager import IdManager, IdManagerException
 from datatypes import User, MSG_ERROR, MSG_JOIN, MSG_MOVE
 from player import Player
+from game_object import GameObject
 from game import Game
 
 async def handle(request):
@@ -90,7 +91,7 @@ def new_player(app, username, ws):
 		msg = json.dumps([MSG_ERROR,'max users reached'])
 		ws.send_str(msg)
 		return None
-	player = Player(User(uid, username, ws))
+	player = Player(User(uid, username, ws), GameObject())
 	app['searching'].put_nowait(player)
 	
 	return player

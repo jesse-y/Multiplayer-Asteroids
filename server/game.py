@@ -73,12 +73,14 @@ class Game:
 			self.notify_single(player, [MSG_START, player.pid, self.game_time])
 
 	def create_world(self):
+		x, y = 200, 240
 		for player in self.players.values():
-			player.go.pos = Position(320,240)
+			#player.go.pos = Position(320,240)
+			player.go.pos = Position(x,y)
+			x += 150
 
 	def update_entities(self, dt):
 		for player in self.players.values():
-			#player.go.change_dir(dt=dt)
 			player.go.move(dt=dt, speed=settings.PLAYER_SPEED)
 
 	def check_collisions(self):

@@ -35,10 +35,9 @@ class Player:
 		return hash(self.user)
 
 	def __str__(self):
-		return 'p{}:{}'.format(self.user.uid, self.user.username)
+		return 'p{}:{} =>{}, {}'.format(self.user.uid, self.user.username, self.go.pos, self.go.vec)
 
 	def input(self, inputs):
-		#print('{}>input: got instructions:{}'.format(self, inputs))
 		#inputs is an array of 1 item as an artifact from the way javascript's JSON.stringify handles input
 		
 		#angle = inputs[0]['angle']
