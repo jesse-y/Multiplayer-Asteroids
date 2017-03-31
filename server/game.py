@@ -85,11 +85,13 @@ class Game:
 		pass
 
 	def build_state(self):
-		msg = []
+		msg = {}
+		msg['players'] = {}
+		msg['entities'] = {}
 		for player in self.players.values():
-			msg.append(player.build())
+			msg['players'][player.pid] = player.build()
 		for entity in self.entities.values():
-			msg.append(entity.build())
+			msg['entities'][entity.oid] = entity.build()
 		return msg
 
 	def next_frame(self):
@@ -105,7 +107,7 @@ class Game:
 		self.last_time = time.time()
 
 		msg = self.build_state()
-		self.notify_all([MSG_G_STATE, self.game_time] + msg)
+		self.notify_all([MSG_G_STATE, {'timestamp':self.game_time, 'state':msg}])
 
 	def notify_single(self, player, msg):
 		success = False

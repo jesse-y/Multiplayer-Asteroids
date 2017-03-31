@@ -1,4 +1,5 @@
 import time
+from math import atan2
 
 import settings
 from datatypes import User, Vector
@@ -39,8 +40,14 @@ class Player:
 	def input(self, inputs):
 		#print('{}>input: got instructions:{}'.format(self, inputs))
 		#inputs is an array of 1 item as an artifact from the way javascript's JSON.stringify handles input
-		angle = inputs[0]['angle']
+		
+		#angle = inputs[0]['angle']
 		moves = inputs[0]['moves']
+
+		cx = inputs[0]['mouseX']
+		cy = inputs[0]['mouseY']
+
+		angle = atan2((cx-self.go.pos.x), (cy-self.go.pos.y))
 
 		self.go.angle = angle
 

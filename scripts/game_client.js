@@ -29,18 +29,28 @@ function game_client (ws) {
 
 	var colours = ['#2176ff', '#379e3a', '#efe639', '#f7411d', '#c130e5'];
 
-	var last_cmd;
-	var curr_cmd;
+	var registered_cmds = [];
 
-	var curr_snapshot;
-	var prev_snapshot;
+	var game_time;
 
-	//main function
+	var interp_frame;
+
 	var last_time;
 	var send_switch;
 	var paused;
+
+	this.init = function(args) {
+		console.log('starting game client');
+		paused = false;
+		pid = args[0];
+		last_time = Date.now();
+		game_time = args[1];
+		send_switch = 0;
+		main();
+	}
+
 	function main() {
-		if (paused) { return }
+		if (paused) return;
 
 		var now = Date.now();
 		var dt = (now - last_time) / 1000.0;
@@ -48,13 +58,12 @@ function game_client (ws) {
 		window.print_msg('GC', 'GC==> framerate='+Math.floor(1/dt));
 
 		send_switch += 1;
-		if (send_switch % 2 == 0) {
-			update(dt);
-		}
+		if (send_switch % 2 == 0) update(dt);
 
-		//render();
+		interpolate(dt);
 
 		last_time = now;
+		game_time += dt;
 		get_anim_frame(main);
 	}
 
@@ -69,47 +78,81 @@ function game_client (ws) {
 		cx = window.input.mouseX() - rect.left;
 		cy = window.input.mouseY() - rect.top;
 
-		var send_angle = false;
-		var new_angle = Math.atan2((cx-player.x), (cy-player.y));
-		if (new_angle != player.angle || new_angle == undefined) {
-			send_angle = true;
-		}
+		//var new_angle = Math.atan2((cx-player.x), (cy-player.y))
 
 		if (player.x < 0) { player.x = 0 }
 		if (player.x > 640) { player.x = 640 }
 		if (player.y < 0) { player.y = 0}
 		if (player.y > 480) { player.y = 480}
 		
-		if (this.ws && this.ws.readyState === this.ws.OPEN && (commands.length > 0 || new_angle)) {
+		if (this.ws && this.ws.readyState === this.ws.OPEN) {
 			var move = {
 				'moves':commands,
-				'angle':new_angle,
+				'mouseX':cx,
+				'mouseY':cy
 			}
-			last_cmd = curr_cmd;
-			curr_cmd = move;
+			registered_cmds.push({
+				'timestamp': game_time,
+				'move': move
+			})
 			this.ws.send(JSON.stringify([window.netm.MSG_MOVE, move]));
 		}
 	}
 
-	function render() {
+	function interpolate(dt) {
+		if (from == undefined || to == undefined) return
+		if (interp_frame == undefined) {
+			render(to);
+		} else {
+			//get interpolated frame timestamp fraction
+			interp_frame.timestamp += dt;
+			var frac_t = ((interp_frame.timestamp - from.timestamp) / (to.timestamp - from.timestamp));
+			
+			//for each player
+			for (var key in interp_frame.state.players) {
+				if (to.state.players.hasOwnProperty(key)) {
+					player = interp_frame.state.players[key].state;
+					fp = from.state.players[key].state;
+					tp = to.state.players[key].state;
+
+					//tween translation
+					player.x = fp.x + ((tp.x-fp.x) * frac_t);
+					player.y = fp.y + ((tp.y-fp.y) * frac_t);
+
+					//tween rotation
+					var adiff = (tp.a-fp.a);
+					if (adiff < -Math.PI) adiff += 2*Math.PI;
+					if (adiff > Math.PI) adiff -= 2*Math.PI;
+
+					player.a = fp.a + (adiff * frac_t);
+				}
+			}
+			render(interp_frame);
+		}
+	}
+
+	function render(ss) {
 		//render background
 		ctx.fillStyle = '#D9D9D9';
 		ctx.fillRect(0,0,canvas.width, canvas.height);
 
 		//render all players
-		render_ship(pid, player, true);		
+		for (var key in ss.state.players) {
+			var player = ss.state.players[key];
+			render_ship(player.pid, player.state, true);
+		}
 	}
 
 	function render_ship(_pid, state, debug) {
 		var debug_str = '[x: ' + Math.floor(state.x) + 
 		', y: ' + Math.floor(state.y) + 
-		', angle: ' + state.angle + 
+		', angle: ' + state.a + 
 		', mouseX: ' + window.input.mouseX() + 
 		', mouseY: ' + window.input.mouseY() + ']';
 		window.print_msg('render_ship', debug_str);
 
-		px = 50 * Math.sin(state.angle);
-		py = 50 * Math.cos(state.angle);
+		px = 50 * Math.sin(state.a);
+		py = 50 * Math.cos(state.a);
 
 		ctx.save();
 		ctx.translate(state.x, state.y);
@@ -120,7 +163,7 @@ function game_client (ws) {
 		ctx.lineTo(px, py);
 		ctx.stroke();*/
 
-		ctx.rotate(-state.angle);
+		ctx.rotate(-state.a);
 
 		//player is a triangle
 		ctx.fillStyle = colours[_pid-1];
@@ -140,33 +183,21 @@ function game_client (ws) {
 		ctx.restore();
 	}
 
-	this.init = function(_pid) {
-		console.log('starting game client');
-		paused = false;
-		pid = _pid;
-		last_time = Date.now();
-		send_switch = 0;
-		main();
-	}
+	var from;
+	var to;
 	this.state_update = function(msg) {
-		window.print_msg('APP', 'Game Time: '+Number(msg[0]).toFixed(2));
-		
-		/*
-		var s_tick = msg[0];
-		//gamestate is a big list of all items to keep track of
-		msg.slice(1).forEach(function(entry) {
-			//if the item in the list is a player object..
-			if (entry.hasOwnProperty('pid') && pid == entry.pid) {
-				player.x = entry.state.x;
-				player.y = entry.state.y;
-				player.angle = entry.state.a;
-			}
-		});*/
+		window.print_msg('APP', 'Game Time: '+Number(msg.timestamp).toFixed(2));
+		game_time = Number(msg[0]);
 
-		prev_snapshot = curr_snapshot;
-		curr_snapshot = msg;
+		from = clone(to);
+		to = msg;
+		interp_frame = clone(from);
+	}
 
-		render();
+	function clone (obj) {
+		if (obj != undefined) {
+			return JSON.parse(JSON.stringify(obj))
+		}
 	}
 	this.reset_screen = function() {
 		paused = true;
