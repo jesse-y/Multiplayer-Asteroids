@@ -23,6 +23,8 @@ class Game:
 		self.entities = {}
 
 		self.game_time = 0.
+		self.send_ticker = 0
+		self.send_rate = settings.GAME_SPEED/settings.SEND_RATE
 
 	def __hash__(self):
 		return hash(self.game_id)
@@ -81,7 +83,7 @@ class Game:
 
 	def update_entities(self, dt):
 		for player in self.players.values():
-			player.go.move(dt=dt, speed=settings.PLAYER_SPEED)
+			player.go.move(dt=1./settings.CLIENT_RATE, speed=settings.PLAYER_SPEED)
 
 	def check_collisions(self):
 		pass
@@ -108,8 +110,10 @@ class Game:
 
 		self.last_time = time.time()
 
-		msg = self.build_state()
-		self.notify_all([MSG_G_STATE, {'timestamp':self.game_time, 'state':msg}])
+		self.send_ticker += 1
+		if self.send_ticker % self.send_rate == 0:
+			msg = self.build_state()
+			self.notify_all([MSG_G_STATE, {'timestamp':self.game_time, 'state':msg}])
 
 	def notify_single(self, player, msg):
 		success = False

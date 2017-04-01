@@ -110,6 +110,7 @@ function game_client (ws) {
 		if (interp_frame == undefined) {
 			render(to);
 		} else {
+			console.log('interpolate');
 			//get interpolated frame timestamp fraction
 			interp_frame.timestamp += dt;
 			var frac_t = ((interp_frame.timestamp - from.timestamp) / (to.timestamp - from.timestamp));
@@ -120,8 +121,6 @@ function game_client (ws) {
 					player = interp_frame.state.players[key].state;
 					fp = from.state.players[key].state;
 					tp = to.state.players[key].state;
-
-					console.log('handle player:'+key, player);
 
 					//tween translation
 					player.x = fp.x + ((tp.x-fp.x) * frac_t);
@@ -196,6 +195,7 @@ function game_client (ws) {
 	var from;
 	var to;
 	this.state_update = function(msg) {
+		console.log('new state');
 		window.print_msg('APP', 'Game Time: '+Number(msg.timestamp).toFixed(2));
 		game_time = Number(msg[0]);
 
@@ -209,6 +209,7 @@ function game_client (ws) {
 			return JSON.parse(JSON.stringify(obj))
 		}
 	}
+
 	this.reset_screen = function() {
 		paused = true;
 		ctx.fillStyle = '#D9D9D9';
