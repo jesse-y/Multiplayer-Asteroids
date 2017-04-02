@@ -34,7 +34,6 @@ async def wshandler(request):
 				continue
 			#update moves if the player is ingame
 			if player and player in app['in_game'] and data[0] == MSG_MOVE:
-				#simulate lag
 				player.input(data[1:])
 
 			#assign this websocket as a player and add to matchmaking queue

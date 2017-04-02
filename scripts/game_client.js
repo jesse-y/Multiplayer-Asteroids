@@ -20,6 +20,7 @@ function game_client (ws) {
 	var ctx = canvas.getContext('2d');
 
 	var player_speed = 200;
+	var client_speed = 1/30;
 
 	var player = {
 		x: canvas.width/2,
@@ -97,6 +98,10 @@ function game_client (ws) {
 				'timestamp': game_time,
 				'move': move
 			})
+			//make a prediction
+			commands.forEach(function (move) {
+				apply_move(player, move);
+			});
 			this.ws.send(JSON.stringify([window.netm.MSG_MOVE, move]));
 		}
 	}
@@ -106,16 +111,20 @@ function game_client (ws) {
 		ctx.fillStyle = '#D9D9D9';
 		ctx.fillRect(0,0,canvas.width, canvas.height);
 
+		//return if something went wrong
 		if (from == undefined || to == undefined) return
+		//if this is the first frame we have to render
 		if (interp_frame == undefined) {
+			//instantiate local predicted player
+			var server_player = to.state.players[pid];
+			player = clone(server_player);
 			render(to);
 		} else {
-			console.log('interpolate');
 			//get interpolated frame timestamp fraction
 			interp_frame.timestamp += dt;
 			var frac_t = ((interp_frame.timestamp - from.timestamp) / (to.timestamp - from.timestamp));
 			
-			//for each player
+			//interpolate the position of each player and render it
 			for (var key in interp_frame.state.players) {
 				if (to.state.players.hasOwnProperty(key)) {
 					player = interp_frame.state.players[key].state;
@@ -134,6 +143,10 @@ function game_client (ws) {
 					player.a = fp.a + (adiff * frac_t);
 
 					render_ship(key, player, true);
+					if (key == pid) {
+						//render out prediction of current player
+						render_ship(pid, player, false);
+					}
 				}
 			}
 			//render(interp_frame);
@@ -195,9 +208,23 @@ function game_client (ws) {
 	var from;
 	var to;
 	this.state_update = function(msg) {
-		console.log('new state');
 		window.print_msg('APP', 'Game Time: '+Number(msg.timestamp).toFixed(2));
-		game_time = Number(msg[0]);
+		game_time = Number(msg.timestamp);
+
+		//check predicted distance is correct
+		var server_player = clone(msg.state.players[pid].state);
+		if (server_player != undefined) {
+			registered_cmds.forEach(function iterate(cmd) {
+				cmd.move.moves.forEach(function (move) {
+					apply_move(server_player, move);
+				});
+			});
+			registered_cmds = [];
+		} else {
+			console.log('failed to find player');
+		}
+		//compare iteration result
+		console.log('x['+server_player.x+','+player.x+']<->y['+server_player.y+','+player.y+']');
 
 		from = clone(to);
 		to = msg;
@@ -208,6 +235,14 @@ function game_client (ws) {
 		if (obj != undefined) {
 			return JSON.parse(JSON.stringify(obj))
 		}
+	}
+
+	function apply_move(obj, move) {
+		var new_val = Math.floor(player_speed * client_speed);
+		if (move == 'UP') obj.y -= new_val;
+		if (move == 'DOWN') obj.y += new_val;
+		if (move == 'LEFT') obj.x -= new_val;
+		if (move == 'RIGHT') obj.x += new_val;
 	}
 
 	this.reset_screen = function() {
