@@ -28,10 +28,11 @@ function game_client (ws) {
 		a: 0
 	}
 
-	var predicted_vector = {
-		'sum': [0,0],
-		'total': 0
+	var prediction_offset = {
+		'x':0,
+		'y':0
 	}
+
 	var vector_map = {
 		'UP'   : [0,-1],
 		'DOWN' : [0,1],
@@ -122,7 +123,7 @@ function game_client (ws) {
 				'state': clone(player)
 			})
 
-			//console.log('sending prediction: '+Number(game_time).toFixed(2)+', cmd_id: '+cmd_id);
+			//console.log('sending prediction: '+cmd_id+', x:'+player.x+', y'+player.y);
 			cmd_id+=1;
 			this.ws.send(JSON.stringify([window.netm.MSG_MOVE, move]));
 		}
@@ -140,8 +141,14 @@ function game_client (ws) {
 			console.log('INTERP FRAME NOT DEFINED');
 			render(to);
 		} else {
+			//get interpolated frame timestamp fraction
+			interp_frame.timestamp += dt;
+			var frac_t = ((interp_frame.timestamp - from.timestamp) / (to.timestamp - from.timestamp));
+
 			//render predicted player
 			render_ship(pid, player, false);
+
+			//print prediction info
 			var debug_str = 'local: [x: ' + Math.floor(player.x) + 
 			', y: ' + Math.floor(player.y) + 
 			', angle: ' + player.a + 
@@ -149,10 +156,6 @@ function game_client (ws) {
 			', mouseY: ' + window.input.mouseY() + ']';
 			window.print_msg('local_predict', debug_str);
 
-			//get interpolated frame timestamp fraction
-			interp_frame.timestamp += dt;
-			var frac_t = ((interp_frame.timestamp - from.timestamp) / (to.timestamp - from.timestamp));
-			
 			//interpolate the position of each player and render it
 			for (var key in interp_frame.state.players) {
 				if (to.state.players.hasOwnProperty(key)) {
@@ -232,6 +235,11 @@ function game_client (ws) {
 
 	var from;
 	var to;
+
+	var unacked_offset = {
+		'x':0,
+		'y':0
+	}
 	this.state_update = function(msg) {
 		window.print_msg('APP', 'Game Time: '+Number(msg.timestamp).toFixed(2));
 		game_time = Number(msg.timestamp);
@@ -245,15 +253,35 @@ function game_client (ws) {
 			received_ids = msg.state.players[pid].received_ids;
 
 			var index = last_id - (cmd_id - registered_cmds.length);
-			var client_state = registered_cmds[index-1].state;
+			var client_state = registered_cmds[index].state;
 			var server_state = msg.state.players[pid].state;
 
-			//console.log('cmd_id_server='+msg.state.players[pid].last_id+', cmd_id_client='+registered_cmds[index].cmd_id);
-			
-			ox = client_state.x - server_state.x;
-			oy = client_state.y - server_state.y;
+			//console.log('');
+			//console.log('cmd_id_server='+msg.state.players[pid].last_id+', cmd_id_client='+registered_cmds[index].cmd_id+', registered_cmds_length='+registered_cmds.length);
 
-			console.log('offset: x='+ox+', y='+oy+' s_time='+msg.timestamp+', c_time='+registered_cmds[index-1].timestamp);
+			prediction_offset.x = client_state.x - server_state.x;
+			prediction_offset.y = client_state.y - server_state.y;
+
+			//zero prediction offset + non zero unacked offset means the fix worked. reset unacked offset
+			if ((prediction_offset.x == 0 && unacked_offset.x != 0) || (prediction_offset.y == 0 && unacked_offset.y != 0)) {
+				console.log('offset fix worked, resetting');
+				unacked_offset.x = 0;
+				unacked_offset.y = 0;
+			}
+
+			//if we have an unacked offset
+			if ((prediction_offset.x + unacked_offset.x) != 0 || (prediction_offset.y + unacked_offset.y) != 0) {
+				console.log('fixing offset');
+				player.x += prediction_offset.x * -1;
+				player.y += prediction_offset.y * -1;
+				unacked_offset.x += prediction_offset.x * -1;
+				unacked_offset.y += prediction_offset.y * -1;
+			}
+
+			window.print_msg('offset', 'current offset: x='+prediction_offset.x+', y='+prediction_offset.y);
+
+			//console.log('offset: x='+ox+', y='+oy+' sx='+server_state.x+', sy='+server_state.y+', cx='+client_state.x+', cy='+client_state.y);
+			//console.log('');
 
 			registered_cmds = registered_cmds.slice(index);
 		}
@@ -312,6 +340,9 @@ function game_client (ws) {
 		console.log(canvas.width, canvas.height);
 		from = undefined;
 		to = undefined;
+
+		prediction_offset.x = 0;
+		prediction_offset.y = 0;
 	};
 
 	this.reset_screen();	
