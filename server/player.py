@@ -30,6 +30,9 @@ class Player:
 		#the player id is specific to each game the player is in
 		self.pid = pid
 		self.go = go
+		#command id processing for reconciliation
+		self.last_id = -1
+		self.received_ids = 0
 
 	def __hash__(self):
 		return hash(self.user)
@@ -39,7 +42,9 @@ class Player:
 
 	def input(self, inputs):
 		#inputs is an array of 1 item as an artifact from the way javascript's JSON.stringify handles input
-		
+		self.last_id = inputs[0]['cmd_id']
+		self.received_ids += 1
+
 		#angle = inputs[0]['angle']
 		moves = inputs[0]['moves']
 
@@ -65,4 +70,6 @@ class Player:
 		entity = {}
 		entity['state'] = self.go.build()
 		entity['pid'] = self.pid
+		entity['last_id'] = self.last_id
+		entity['received_ids'] = self.received_ids
 		return entity

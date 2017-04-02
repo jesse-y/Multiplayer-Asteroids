@@ -23,9 +23,20 @@ function game_client (ws) {
 	var client_speed = 1/30;
 
 	var player = {
-		x: canvas.width/2,
-		y: canvas.height/2,
-		angle: 0
+		x: 0,
+		y: 0,
+		a: 0
+	}
+
+	var predicted_vector = {
+		'sum': [0,0],
+		'total': 0
+	}
+	var vector_map = {
+		'UP'   : [0,-1],
+		'DOWN' : [0,1],
+		'LEFT' : [-1, 0],
+		'RIGHT': [1, 0]
 	}
 
 	var colours = ['#2176ff', '#379e3a', '#efe639', '#f7411d', '#c130e5'];
@@ -33,6 +44,9 @@ function game_client (ws) {
 	var registered_cmds = [];
 
 	var game_time;
+	var cmd_id;
+	var last_id;
+	var received_ids;
 
 	var interp_frame;
 
@@ -46,6 +60,7 @@ function game_client (ws) {
 		pid = args[0];
 		last_time = Date.now();
 		game_time = args[1];
+		cmd_id = 0;
 		send_switch = 0;
 		main();
 	}
@@ -69,7 +84,7 @@ function game_client (ws) {
 	}
 
 	function update(dt) {
-		if (!document.hasFocus()) return
+		if (!document.hasFocus() || (from == undefined || to == undefined)) return
 			
 		if (window.input.is_down('ESCAPE')) {
 			this.ws.close();
@@ -81,7 +96,8 @@ function game_client (ws) {
 		cx = window.input.mouseX() - rect.left;
 		cy = window.input.mouseY() - rect.top;
 
-		//var new_angle = Math.atan2((cx-player.x), (cy-player.y))
+		var new_angle = Math.atan2((cx-player.x), (cy-player.y));
+		player.a = new_angle;
 
 		if (player.x < 0) { player.x = 0 }
 		if (player.x > 640) { player.x = 640 }
@@ -90,18 +106,24 @@ function game_client (ws) {
 		
 		if (this.ws && this.ws.readyState === this.ws.OPEN) {
 			var move = {
+				'cmd_id':cmd_id,
 				'moves':commands,
 				'mouseX':cx,
 				'mouseY':cy
 			}
-			registered_cmds.push({
-				'timestamp': game_time,
-				'move': move
-			})
-			//make a prediction
-			commands.forEach(function (move) {
-				apply_move(player, move);
+
+			commands.forEach(function (cmd) {
+				apply_move(player, cmd);
 			});
+
+			registered_cmds.push({
+				'cmd_id':cmd_id,
+				'timestamp': game_time,
+				'state': clone(player)
+			})
+
+			//console.log('sending prediction: '+Number(game_time).toFixed(2)+', cmd_id: '+cmd_id);
+			cmd_id+=1;
 			this.ws.send(JSON.stringify([window.netm.MSG_MOVE, move]));
 		}
 	}
@@ -115,11 +137,18 @@ function game_client (ws) {
 		if (from == undefined || to == undefined) return
 		//if this is the first frame we have to render
 		if (interp_frame == undefined) {
-			//instantiate local predicted player
-			var server_player = to.state.players[pid];
-			player = clone(server_player);
+			console.log('INTERP FRAME NOT DEFINED');
 			render(to);
 		} else {
+			//render predicted player
+			render_ship(pid, player, false);
+			var debug_str = 'local: [x: ' + Math.floor(player.x) + 
+			', y: ' + Math.floor(player.y) + 
+			', angle: ' + player.a + 
+			', mouseX: ' + window.input.mouseX() + 
+			', mouseY: ' + window.input.mouseY() + ']';
+			window.print_msg('local_predict', debug_str);
+
 			//get interpolated frame timestamp fraction
 			interp_frame.timestamp += dt;
 			var frac_t = ((interp_frame.timestamp - from.timestamp) / (to.timestamp - from.timestamp));
@@ -127,26 +156,22 @@ function game_client (ws) {
 			//interpolate the position of each player and render it
 			for (var key in interp_frame.state.players) {
 				if (to.state.players.hasOwnProperty(key)) {
-					player = interp_frame.state.players[key].state;
+					var server_player = interp_frame.state.players[key].state;
 					fp = from.state.players[key].state;
 					tp = to.state.players[key].state;
 
 					//tween translation
-					player.x = fp.x + ((tp.x-fp.x) * frac_t);
-					player.y = fp.y + ((tp.y-fp.y) * frac_t);
+					server_player.x = fp.x + ((tp.x-fp.x) * frac_t);
+					server_player.y = fp.y + ((tp.y-fp.y) * frac_t);
 
 					//tween rotation
 					var adiff = (tp.a-fp.a);
 					if (adiff < -Math.PI) adiff += 2*Math.PI;
 					if (adiff > Math.PI) adiff -= 2*Math.PI;
 
-					player.a = fp.a + (adiff * frac_t);
+					server_player.a = fp.a + (adiff * frac_t);
 
-					render_ship(key, player, true);
-					if (key == pid) {
-						//render out prediction of current player
-						render_ship(pid, player, false);
-					}
+					render_ship(key, server_player, true);
 				}
 			}
 			//render(interp_frame);
@@ -166,7 +191,7 @@ function game_client (ws) {
 	}
 
 	function render_ship(_pid, state, debug) {
-		var debug_str = '[x: ' + Math.floor(state.x) + 
+		var debug_str = 'server: [x: ' + Math.floor(state.x) + 
 		', y: ' + Math.floor(state.y) + 
 		', angle: ' + state.a + 
 		', mouseX: ' + window.input.mouseX() + 
@@ -211,6 +236,40 @@ function game_client (ws) {
 		window.print_msg('APP', 'Game Time: '+Number(msg.timestamp).toFixed(2));
 		game_time = Number(msg.timestamp);
 
+		//console.log('state from server: '+Number(msg.timestamp).toFixed(2)+', last_id: '+msg.state.players[pid].last_id);
+
+		if (registered_cmds.length != 0 && msg.state.players[pid].last_id >= 0) {
+			window.print_msg('reconcile', 'unacked moves: '+registered_cmds.length);
+			//reconcile last input
+			last_id = msg.state.players[pid].last_id;
+			received_ids = msg.state.players[pid].received_ids;
+
+			var index = last_id - (cmd_id - registered_cmds.length);
+			var client_state = registered_cmds[index-1].state;
+			var server_state = msg.state.players[pid].state;
+
+			console.log('cmd_id_server='+msg.state.players[pid].last_id+', cmd_id_client='+registered_cmds[index].cmd_id);
+			
+			ox = client_state.x - server_state.x;
+			oy = client_state.y - server_state.y;
+
+			console.log('offset: x='+ox+', y='+oy+' s_time='+msg.timestamp+', c_time='+registered_cmds[index-1].timestamp);
+
+			registered_cmds = registered_cmds.slice(index);
+		}
+
+		if (to == undefined) {
+			//instantiate local predicted player
+			var server_player = msg.state.players[pid].state;
+			player.x = server_player.x;
+			player.y = server_player.y;
+			player.angle = server_player.a;
+		}
+
+		//reconcile previous states
+
+
+/*
 		//check predicted distance is correct
 		var server_player = clone(msg.state.players[pid].state);
 		if (server_player != undefined) {
@@ -224,8 +283,8 @@ function game_client (ws) {
 			console.log('failed to find player');
 		}
 		//compare iteration result
-		console.log('x['+server_player.x+','+player.x+']<->y['+server_player.y+','+player.y+']');
-
+		//console.log('x['+server_player.x+','+player.x+']<->y['+server_player.y+','+player.y+']');
+*/
 		from = clone(to);
 		to = msg;
 		interp_frame = clone(from);
