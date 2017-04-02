@@ -16,8 +16,9 @@ class GameObject:
 
 	def move(self, dt=1, speed=1):
 		x, y = self.pos.x, self.pos.y
-		x += floor(speed * dt * self.vec.x)
-		y += floor(speed * dt * self.vec.y)
+		#NOTE: floor() Behaves differently for negative values compared to javascript's Math.floor()!!
+		x += floor(speed * dt) * self.vec.x
+		y += floor(speed * dt) * self.vec.y
 
 		if x > 640 : x = 640
 		if x < 0   : x = 0

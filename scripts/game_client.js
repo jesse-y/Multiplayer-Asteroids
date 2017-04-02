@@ -248,7 +248,7 @@ function game_client (ws) {
 			var client_state = registered_cmds[index-1].state;
 			var server_state = msg.state.players[pid].state;
 
-			console.log('cmd_id_server='+msg.state.players[pid].last_id+', cmd_id_client='+registered_cmds[index].cmd_id);
+			//console.log('cmd_id_server='+msg.state.players[pid].last_id+', cmd_id_client='+registered_cmds[index].cmd_id);
 			
 			ox = client_state.x - server_state.x;
 			oy = client_state.y - server_state.y;
@@ -310,6 +310,8 @@ function game_client (ws) {
 		ctx.fillRect(0,0,canvas.width, canvas.height);
 
 		console.log(canvas.width, canvas.height);
+		from = undefined;
+		to = undefined;
 	};
 
 	this.reset_screen();	
