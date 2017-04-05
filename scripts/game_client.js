@@ -293,26 +293,7 @@ function game_client (ws) {
 			player.y = server_player.y;
 			player.angle = server_player.a;
 		}
-
-		//reconcile previous states
-
-
-/*
-		//check predicted distance is correct
-		var server_player = clone(msg.state.players[pid].state);
-		if (server_player != undefined) {
-			registered_cmds.forEach(function iterate(cmd) {
-				cmd.move.moves.forEach(function (move) {
-					apply_move(server_player, move);
-				});
-			});
-			registered_cmds = [];
-		} else {
-			console.log('failed to find player');
-		}
-		//compare iteration result
-		//console.log('x['+server_player.x+','+player.x+']<->y['+server_player.y+','+player.y+']');
-*/
+		
 		from = clone(to);
 		to = msg;
 		interp_frame = clone(from);

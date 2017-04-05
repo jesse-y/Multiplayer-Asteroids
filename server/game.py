@@ -66,7 +66,7 @@ class Game:
 
 		print('{}>disconnect_player: notify all players that {} disconnected'.format(self, quitter))
 		for ingame_player in self.players.values():
-			self.notify_single(ingame_player, [MSG_QUIT, quitter.user.uid, quitter.user.username])
+			self.notify_single(ingame_player, [MSG_QUIT, quitter.user.uid])
 
 	def start(self):
 		self.create_world()
