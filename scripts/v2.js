@@ -125,7 +125,7 @@ function game_client() {
 		ctx.fillStyle = '#D9D9D9';
 		ctx.fillRect(0,0,canvas.width, canvas.height);
 
-		gs.reset();
+		ih.stop();
 
 		console.log(canvas.width, canvas.height);
 	};

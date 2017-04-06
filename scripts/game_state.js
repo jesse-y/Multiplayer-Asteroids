@@ -20,6 +20,7 @@ function game_state(client_speed) {
 	var predict_err;
 
 	this.init = function(player_id, start_time) {
+		console.log('initialising game state');
 		pid = player_id;
 		game_time = start_time;
 
@@ -27,7 +28,7 @@ function game_state(client_speed) {
 	}
 
 	this.reset = function() {
-		player = new Object;
+		player = undefined;
 
 		from = undefined;
 		to = undefined;
@@ -45,18 +46,20 @@ function game_state(client_speed) {
 		if (history.length < 1) return;
 
 		history.forEach(function (entry) {
-			var commands = entry.commands;
+			if (player != undefined) {
+				var commands = entry.commands;
 
-			commands.forEach(function (cmd) {
-				apply_move(player, cmd);
-			})
-			apply_mouse(player, entry.mouseX, entry.mouseY);
+				commands.forEach(function (cmd) {
+					apply_move(player, cmd);
+				})
+				apply_mouse(player, entry.mouseX, entry.mouseY);
 
-			past_moves.push({
-				'cmd_id':entry.cmd_id,
-				'timestamp':game_time,
-				'state':clone(player)
-			})
+				past_moves.push({
+					'cmd_id':entry.cmd_id,
+					'timestamp':game_time,
+					'state':clone(player)
+				})
+			}
 		})
 	}
 
@@ -75,6 +78,7 @@ function game_state(client_speed) {
 		if (to == undefined) {
 			//instantiate local predicted player starting position
 			var sp = snapshot.state.players[pid].state;
+			player = new Object;
 			player.x = sp.x;
 			player.y = sp.y;
 			player.a = sp.a;

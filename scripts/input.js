@@ -82,7 +82,7 @@
 function input_handler() {
 	//input variables
 	var ws;
-	var cmd_id = 0;
+	var cmd_id;
 	var registered_cmds = [];
 
 	//timer variables
@@ -97,8 +97,10 @@ function input_handler() {
 	}
 
 	this.init = function(_ws, _tick_rate) {
+		console.log('initialising input handler');
 		ws = _ws;
 		tick_rate = _tick_rate;
+		cmd_id = 0;
 		paused = false;
 		cycle();
 	}
