@@ -1,7 +1,9 @@
-function game_client(_ws) {
-	var ws = _ws;
-	var gs = new game_state(client_speed);
-	var ih = new input_handler(ws, client_speed);
+function game_client() {
+	var client_speed = 1/30;
+
+	var ws;
+	var gs = new game_state();
+	var ih = new input_handler();
 
 	var get_anim_frame = (function(){
     return window.requestAnimationFrame       ||
@@ -18,6 +20,9 @@ function game_client(_ws) {
 	canvas.width = 640;
 	canvas.height = 480;
 	var ctx = canvas.getContext('2d');
+
+	//default ship colours
+	var colours = ['#2176ff', '#379e3a', '#efe639', '#f7411d', '#c130e5'];
 
 	var paused;
 	var last_time;
@@ -39,114 +44,89 @@ function game_client(_ws) {
 		get_anim_frame(main);
 	}
 
-	this.init = function(args) {
+	this.init = function(_ws, args) {
 		console.log('starting game client');
-		
+		ws = _ws;
+
 		paused = false;
 		last_time = Date.now();
 
 		var pid = args[0];
 		var game_time = args[1];
 
-		ih.init();
+		ih.init(ws, client_speed);
 		gs.init(pid, game_time);
 		main();
 	}
 
-	function render(frame) {
-		//TO DO
-		return;
-	}
-}
-
-function game_state(client_speed) {
-	//const game values
-	var player_speed = 200;
-	var client_speed = 1/30;
-	var world_x = 640;
-	var world_y = 480;
-
-	//game state
-	var game_time;
-	var pid;
-	var players;
-	var entities;
-
-	//world snapshots
-	var from;
-	var to;
-	var interp;
-
-	//player movement history
-	var past_moves;
-
-	this.init = function(player_id, start_time) {
-		pid = player_id;
-		game_time = start_time;
-
-		reset();
-	}
-
-	function reset() {
-		player = {
-			'x':0,
-			'y':0,
-			'a':0
-		}
-		entities = [];
-
-		from = undefined;
-		to = undefined;
-		interp = undefined;
-
-		past_moves = [];
-	}
-
-	this.update_history = function(history) {
-		if (history.length < 1) return;
-
-		history.forEach(function (entry) {
-			var commands = entry.commands;
-
-			commands.forEach(function (cmd) {
-				apply_move(players[pid], cmd);
-			})
-			apply_mouse(player, entry.mouseX, entry.mouseY);
-
-			past_moves.push({
-				'cmd_id':entry.cmd_id,
-				'timestamp':game_time,
-				'state':clone(player)
-			})
-		})
-	}
-
 	this.state_update = function(msg) {
-		var snapshot = parse(msg)
+		gs.state_update(msg);
 	}
 
-	function parse(msg) {
+	function render(frame) {
+		//render background
+		ctx.fillStyle = '#D9D9D9';
+		ctx.fillRect(0,0,canvas.width, canvas.height);
+
+		if (frame == undefined) return;
+
+		//render state players
+		for (var key in frame.state.players) {
+			var ship = frame.state.players[key];
+			render_ship(ship.pid, ship.state, true);
+		}
+		//render predicted player
+		//var pp = frame.predicted_player;
+		//render_ship(pp.pid, pp, false);
+	}
+
+	function render_ship(_pid, state, debug) {
+		var debug_str = 'server: [x: ' + Math.floor(state.x) + 
+		', y: ' + Math.floor(state.y) + 
+		', angle: ' + state.a + 
+		', mouseX: ' + window.input.mouseX() + 
+		', mouseY: ' + window.input.mouseY() + ']';
+		window.print_msg('render_ship', debug_str);
+
+		px = 50 * Math.sin(state.a);
+		py = 50 * Math.cos(state.a);
+
+		ctx.save();
+		ctx.translate(state.x, state.y);
+
+		//aiming line
+		/*ctx.beginPath();
+		ctx.moveTo(0,0);
+		ctx.lineTo(px, py);
+		ctx.stroke();*/
+
+		ctx.rotate(-state.a);
+
+		//player is a triangle
+		ctx.fillStyle = colours[_pid-1];
+		ctx.strokeStyle = colours[_pid-1];
+		ctx.beginPath();
+		ctx.moveTo(0,20);
+		ctx.lineTo(14,-14);
+		ctx.lineTo(-14,-14);
+		ctx.lineTo(0,20);
 		
+		if (debug) {
+			ctx.stroke();
+		} else {
+			ctx.fill();
+		}
+
+		ctx.restore();
 	}
 
-	function apply_move(obj, move) {
-		var dist = Math.floor(player_speed * client_speed);
-		if (move == 'UP')    obj.y -= dist;
-		if (move == 'DOWN')  obj.y += dist;
-		if (move == 'LEFT')  obj.x -= dist;
-		if (move == 'RIGHT') obj.x += dist;
+	this.reset_screen = function() {
+		paused = true;
+		ctx.fillStyle = '#D9D9D9';
+		ctx.fillRect(0,0,canvas.width, canvas.height);
 
-		if (obj.x < 0)       obj.x = 0;
-		if (obj.x > world_x) obj.x = world_x;
-		if (obj.y < 0)       obj.y = 0;
-		if (obj.y > world_y) obj.y = world_y;
-	}
+		console.log(canvas.width, canvas.height);
+	};
 
-	function apply_mouse(obj, mx, my) {
-		obj.a = Math.atan2((mx-obj.x), (my-obj.y));
-	}
-
-	function clone(obj) {
-		return JSON.parse(JSON.stringify(obj));
-	}
+	this.reset_screen();	
 }

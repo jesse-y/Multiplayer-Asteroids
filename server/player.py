@@ -46,7 +46,7 @@ class Player:
 		self.received_ids += 1
 
 		#angle = inputs[0]['angle']
-		moves = inputs[0]['moves']
+		moves = inputs[0]['commands']
 
 		cx = inputs[0]['mouseX']
 		cy = inputs[0]['mouseY']

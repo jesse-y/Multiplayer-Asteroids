@@ -79,14 +79,14 @@
 	};
 })();
 
-function input_handler(_ws, tick_rate) {
+function input_handler() {
 	//input variables
-	var ws = _ws;
+	var ws;
 	var cmd_id = 0;
 	var registered_cmds = [];
 
 	//timer variables
-	var tick_rate = tick_rate;
+	var tick_rate;
 	var paused;
 	function cycle() {
 		if (paused) return;
@@ -96,13 +96,15 @@ function input_handler(_ws, tick_rate) {
 		window.setTimeout(cycle, tick_rate * 1000);
 	}
 
-	this.init = function() {
+	this.init = function(_ws, _tick_rate) {
+		ws = _ws;
+		tick_rate = _tick_rate;
 		paused = false;
 		cycle();
 	}
 
 	function handle_input() {
-		if (!document.hasFocus()) return
+		if (!document.hasFocus() || ws == undefined) return
 
 		if (window.input.is_down('ESCAPE')) {
 			ws.close();
@@ -126,12 +128,12 @@ function input_handler(_ws, tick_rate) {
 			registered_cmds.push(move);
 
 			cmd_id += 1;
-
+			//console.log('input last cmd_id: '+cmd_id);
 			ws.send(JSON.stringify([window.netm.MSG_MOVE, move]));
 		}
 	}
 
-	function pop_history() {
+	this.pop_history = function() {
 		var result;
 		if (registered_cmds.length < 1) {
 			result = [];	
