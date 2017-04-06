@@ -13,15 +13,18 @@ class Game:
 	def __init__(self, game_id=0):
 		self.game_id = game_id
 		self.pidm = IdManager(max_id=settings.MAX_PLAYERS)
+		self.oidm = IdManager()
 		self.ready = False
 		self.finished = False
 
-		self.game_time = None
 		self.last_time = time.time()
 
 		self.players = {}
+		self.entities = {}
 
-		self.tick = 0
+		self.game_time = 0.
+		self.send_ticker = 0
+		self.send_rate = settings.GAME_SPEED/settings.SEND_RATE
 
 	def __hash__(self):
 		return hash(self.game_id)
@@ -63,28 +66,37 @@ class Game:
 
 		print('{}>disconnect_player: notify all players that {} disconnected'.format(self, quitter))
 		for ingame_player in self.players.values():
-			self.notify_single(ingame_player, [MSG_QUIT, quitter.user.uid, quitter.user.username])
+			self.notify_single(ingame_player, [MSG_QUIT, quitter.user.uid])
 
 	def start(self):
-		self.game_time = 0.
+		self.create_world()
 		print('{}>start: sending start messages to all players'.format(self))
 		for player in self.players.values():
 			self.notify_single(player, [MSG_START, player.pid, self.game_time])
-			#world init
-			player.go.pos = Position(320,240)
 
-	def build_state(self):
-		msg = []
+	def create_world(self):
+		x, y = 200, 240
 		for player in self.players.values():
-			msg.append(player.build())
-		return msg
+			#player.go.pos = Position(320,240)
+			player.go.pos = Position(x,y)
+			x += 150
 
 	def update_entities(self, dt):
 		for player in self.players.values():
-			player.go.move(dt=dt, speed=settings.PLAYER_SPEED)
+			player.go.move(dt=1./settings.CLIENT_RATE, speed=settings.PLAYER_SPEED)
 
 	def check_collisions(self):
 		pass
+
+	def build_state(self):
+		msg = {}
+		msg['players'] = {}
+		msg['entities'] = {}
+		for player in self.players.values():
+			msg['players'][player.pid] = player.build()
+		for entity in self.entities.values():
+			msg['entities'][entity.oid] = entity.build()
+		return msg
 
 	def next_frame(self):
 		if self.finished:
@@ -93,13 +105,15 @@ class Game:
 		dt = time.time() - self.last_time
 		self.game_time += dt
 
-		self.update_entities(dt=settings.CLIENT_SPEED)
+		self.update_entities(dt)
 		self.check_collisions()
 
 		self.last_time = time.time()
 
-		msg = self.build_state()
-		self.notify_all([MSG_G_STATE, self.game_time] + msg)
+		self.send_ticker += 1
+		if self.send_ticker % self.send_rate == 0:
+			msg = self.build_state()
+			self.notify_all([MSG_G_STATE, {'timestamp':self.game_time, 'state':msg}])
 
 	def notify_single(self, player, msg):
 		success = False

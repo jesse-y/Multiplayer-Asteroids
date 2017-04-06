@@ -9,7 +9,7 @@ var ws;
 window.CS = new connect_screen();
 window.GS = new game_screen();
 window.LS = new lobby_screen();
-window.GC = new game_client(ws);
+window.GC = new game_client();
 
 function connect_screen() {
 	this.init = function() {
@@ -43,7 +43,8 @@ function connect_screen() {
 			};
 			ws.onclose = function (e) {
 				window.print_msg('status', 'disconnected');
-				window.GC.reset();
+				window.GC.reset_screen();
+				window.hide('lobby_screen');
 				window.show('connect_screen');
 			};
 		});
@@ -173,11 +174,10 @@ function message_handler(e) {
 			case window.netm.MSG_START:
 				window.hide('lobby_screen');
 				window.LS.reset();
-				window.GC.pid = msg[1]
-				window.GC.init();
+				window.GC.init(ws, msg.slice(1));
 				break;
 			case window.netm.MSG_G_STATE:
-				window.GC.state_update(msg.slice(1));
+				window.GC.state_update(msg[1]);
 				break;
 
 			default:

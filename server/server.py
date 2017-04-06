@@ -7,6 +7,7 @@ import settings
 from id_manager import IdManager, IdManagerException
 from datatypes import User, MSG_ERROR, MSG_JOIN, MSG_MOVE
 from player import Player
+from game_object import GameObject
 from game import Game
 
 async def handle(request):
@@ -33,7 +34,6 @@ async def wshandler(request):
 				continue
 			#update moves if the player is ingame
 			if player and player in app['in_game'] and data[0] == MSG_MOVE:
-				#simulate lag
 				player.input(data[1:])
 
 			#assign this websocket as a player and add to matchmaking queue
@@ -90,7 +90,7 @@ def new_player(app, username, ws):
 		msg = json.dumps([MSG_ERROR,'max users reached'])
 		ws.send_str(msg)
 		return None
-	player = Player(User(uid, username, ws))
+	player = Player(User(uid, username, ws), GameObject())
 	app['searching'].put_nowait(player)
 	
 	return player

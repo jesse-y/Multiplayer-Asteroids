@@ -1,4 +1,5 @@
 import time
+from math import atan2
 
 import settings
 from datatypes import User, Vector
@@ -23,33 +24,45 @@ class Player:
 		'RIGHT': Vector(1, 0)
 	}
 
-	def __init__(self, user, go=GameObject(), pid=-1, c_tick=1):
+	def __init__(self, user, go=GameObject(), pid=-1):
 		#the user id is specific to each server process
 		self.user = user
 		#the player id is specific to each game the player is in
 		self.pid = pid
-		self.c_tick = c_tick
 		self.go = go
+		#command id processing for reconciliation
+		self.last_id = -1
+		self.received_ids = 0
 
 	def __hash__(self):
 		return hash(self.user)
 
 	def __str__(self):
-		return 'p{}:{}'.format(self.user.uid, self.user.username)
+		return 'p{}:{} =>{}, {}'.format(self.user.uid, self.user.username, self.go.pos, self.go.vec)
 
 	def input(self, inputs):
-		#print('{}>input: got instructions:{}'.format(self, inputs))
 		#inputs is an array of 1 item as an artifact from the way javascript's JSON.stringify handles input
-		angle = inputs[0]['angle']
-		moves = inputs[0]['moves']
-		self.c_tick = inputs[0]['cl_time']
+		self.last_id = inputs[0]['cmd_id']
+		self.received_ids += 1
+
+		#angle = inputs[0]['angle']
+		moves = inputs[0]['commands']
+
+		cx = inputs[0]['mouseX']
+		cy = inputs[0]['mouseY']
+
+		angle = atan2((cx-self.go.pos.x), (cy-self.go.pos.y))
 
 		self.go.angle = angle
 
 		x, y = 0, 0
 		for move in moves:
-			dx, dy = self.movemap.get(move)
-			x, y = x + dx, y + dy
+			try:
+				dx, dy = self.movemap.get(move)
+				x, y = x + dx, y + dy
+			except:
+				print('p_{}:{}>input: invalid move: {}'.format(self.user.uid, self.user.username, move))
+				return
 		self.go.vec = Vector(x, y)
 
 
@@ -57,6 +70,6 @@ class Player:
 		entity = {}
 		entity['state'] = self.go.build()
 		entity['pid'] = self.pid
-		entity['c_tick'] = self.c_tick
-		entity['type'] = 'player'
+		entity['last_id'] = self.last_id
+		entity['received_ids'] = self.received_ids
 		return entity
