@@ -34,7 +34,7 @@ function game_client() {
 
 		//handle input
 		var history = ih.pop_history();
-		gs.update_history(history);
+		gs.extend_history(history);
 
 		//update game state and then render it
 		frame = gs.next_frame(dt);
@@ -76,8 +76,8 @@ function game_client() {
 			render_ship(ship.pid, ship.state, true);
 		}
 		//render predicted player
-		//var pp = frame.predicted_player;
-		//render_ship(pp.pid, pp, false);
+		var pp = frame.predicted_player;
+		render_ship(pp.pid, pp, false);
 	}
 
 	function render_ship(_pid, state, debug) {
@@ -124,6 +124,8 @@ function game_client() {
 		paused = true;
 		ctx.fillStyle = '#D9D9D9';
 		ctx.fillRect(0,0,canvas.width, canvas.height);
+
+		gs.reset();
 
 		console.log(canvas.width, canvas.height);
 	};

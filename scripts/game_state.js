@@ -15,17 +15,18 @@ function game_state(client_speed) {
 	var to;
 	var interp;
 
-	//player movement history
+	//player movement history and prediction errors
 	var past_moves;
+	var predict_err;
 
 	this.init = function(player_id, start_time) {
 		pid = player_id;
 		game_time = start_time;
 
-		reset();
+		this.reset();
 	}
 
-	function reset() {
+	this.reset = function() {
 		player = new Object;
 
 		from = undefined;
@@ -33,9 +34,14 @@ function game_state(client_speed) {
 		interp = undefined;
 
 		past_moves = [];
+
+		predict_err = {
+			'x':0,
+			'y':0,
+		}
 	}
 
-	this.update_history = function(history) {
+	this.extend_history = function(history) {
 		if (history.length < 1) return;
 
 		history.forEach(function (entry) {
@@ -51,6 +57,14 @@ function game_state(client_speed) {
 				'timestamp':game_time,
 				'state':clone(player)
 			})
+		})
+	}
+
+	function update_history() {
+		//update history with prediction offset
+		past_moves.forEach(function (entry) {
+			entry.state.x += predict_err.x;
+			entry.state.y += predict_err.y;
 		})
 	}
 
@@ -80,16 +94,18 @@ function game_state(client_speed) {
 			var client_state = past_moves[index].state;
 			var server_state = snapshot.state.players[pid].state;
 
-			var ox = client_state.x - server_state.x;
-			var oy = client_state.y - server_state.y;
+			//force sync prediction errors
+			predict_err.x = (client_state.x - server_state.x) * -1;
+			predict_err.y = (client_state.y - server_state.y) * -1;
 
-			//handle incorrect predictions
-			if (ox != 0 || oy != 0) {
-				player.x = server_state.x;
-				player.y = server_state.y;
+			if (predict_err.x != 0 || predict_err.y != 0) {
+				console.log('prediction error: client=[x:'+client_state.x+',y:'+client_state.y+'], server=[x:'+server_state.x+',y:'+server_state.y+'], predict_err[x:'+predict_err.x+',y:'+predict_err.y+']')
+				player.x += predict_err.x;
+				player.y += predict_err.y;
+				update_history();
 			}
 
-			window.print_msg('offset', 'current offset: x='+ox+', y='+oy);
+			window.print_msg('offset', 'current offset: x='+predict_err.x+', y='+predict_err.y);
 
 			past_moves = past_moves.slice(index + 1);
 		}
@@ -136,8 +152,8 @@ function game_state(client_speed) {
 				server_player.a = fp.a + (adiff * frac_t);
 			}
 		}
-		//add predicted player to the frame object
-		var predicted_player = player;
+		//add predicted player to the frame object and interpolate errors
+		var predicted_player = clone(player);
 		predicted_player.pid = pid;
 		interp.predicted_player = predicted_player;
 
