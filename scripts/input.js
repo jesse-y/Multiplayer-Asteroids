@@ -78,3 +78,71 @@
 		}
 	};
 })();
+
+function input_handler(_ws, tick_rate) {
+	//input variables
+	var ws = _ws;
+	var cmd_id = 0;
+	var registered_cmds = [];
+
+	//timer variables
+	var tick_rate = tick_rate;
+	var paused;
+	function cycle() {
+		if (paused) return;
+
+		handle_input();
+
+		window.setTimeout(cycle, tick_rate * 1000);
+	}
+
+	this.init = function() {
+		paused = false;
+		cycle();
+	}
+
+	function handle_input() {
+		if (!document.hasFocus()) return
+
+		if (window.input.is_down('ESCAPE')) {
+			ws.close();
+			return;
+		}
+
+		var commands = window.input.get_commands();
+
+		var rect = document.getElementById('viewport').getBoundingClientRect();
+		cx = window.input.mouseX() - rect.left;
+		cy = window.input.mouseY() - rect.top;
+
+		if (ws && ws.readyState === ws.OPEN) {
+			var move = {
+				'cmd_id':cmd_id,
+				'commands':commands,
+				'mouseX':cx,
+				'mouseY':cy
+			}
+
+			registered_cmds.push(move);
+
+			cmd_id += 1;
+
+			ws.send(JSON.stringify([window.netm.MSG_MOVE, move]));
+		}
+	}
+
+	function pop_history() {
+		var result;
+		if (registered_cmds.length < 1) {
+			result = [];	
+		} else {
+			result = registered_cmds;
+			registered_cmds = [];
+		}
+		return result;
+	}
+
+	this.stop = function() {
+		paused = true;
+	}
+}

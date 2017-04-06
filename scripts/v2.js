@@ -1,7 +1,4 @@
 function game_client(_ws) {
-	var pid;
-	var client_speed = 1/30;
-
 	var ws = _ws;
 	var gs = new game_state(client_speed);
 	var ih = new input_handler(ws, client_speed);
@@ -46,11 +43,13 @@ function game_client(_ws) {
 		console.log('starting game client');
 		
 		paused = false;
-		pid = args[0];
 		last_time = Date.now();
 
+		var pid = args[0];
+		var game_time = args[1];
+
 		ih.init();
-		gs.init(args[1]);
+		gs.init(pid, game_time);
 		main();
 	}
 
@@ -60,83 +59,17 @@ function game_client(_ws) {
 	}
 }
 
-function input_handler(_ws, tick_rate) {
-	//input variables
-	var ws = _ws;
-	var cmd_id = 0;
-	var last_id = 0;
-	var registered_cmds = [];
-
-	//timer variables
-	var tick_rate = tick_rate;
-	var paused;
-	function cycle() {
-		if (paused) return;
-
-		handle_input();
-
-		window.setTimeout(cycle, tick_rate * 1000);
-	}
-
-	this.init = function() {
-		paused = false;
-		cycle();
-	}
-
-	function handle_input() {
-		if (!document.hasFocus()) return
-
-		if (window.input.is_down('ESCAPE')) {
-			ws.close();
-			return;
-		}
-
-		var commands = window.input.get_commands();
-
-		var rect = document.getElementById('viewport').getBoundingClientRect();
-		cx = window.input.mouseX() - rect.left;
-		cy = window.input.mouseY() - rect.top;
-
-		if (ws && ws.readyState === ws.OPEN) {
-			var move = {
-				'cmd_id':cmd_id,
-				'moves':commands,
-				'mouseX':cx,
-				'mouseY':cy
-			}
-
-			registered_cmds.push(move);
-
-			cmd_id += 1;
-
-			ws.send(JSON.stringify([window.netm.MSG_MOVE, move]));
-		}
-	}
-
-	function pop_history() {
-		var result;
-		if (registered_cmds.length < 1) {
-			result = [];	
-		} else {
-			result = registered_cmds;
-			registered_cmds = [];
-		}
-		return result;
-	}
-
-	this.stop = function() {
-		paused = true;
-	}
-}
-
 function game_state(client_speed) {
 	//const game values
 	var player_speed = 200;
-	var client_speed = client_speed;
+	var client_speed = 1/30;
+	var world_x = 640;
+	var world_y = 480;
 
 	//game state
 	var game_time;
-	var player;
+	var pid;
+	var players;
 	var entities;
 
 	//world snapshots
@@ -145,12 +78,75 @@ function game_state(client_speed) {
 	var interp;
 
 	//player movement history
+	var past_moves;
 
-	this.init = function(time) {
-		var game_time = time;
+	this.init = function(player_id, start_time) {
+		pid = player_id;
+		game_time = start_time;
+
+		reset();
+	}
+
+	function reset() {
+		player = {
+			'x':0,
+			'y':0,
+			'a':0
+		}
+		entities = [];
+
+		from = undefined;
+		to = undefined;
+		interp = undefined;
+
+		past_moves = [];
 	}
 
 	this.update_history = function(history) {
+		if (history.length < 1) return;
 
+		history.forEach(function (entry) {
+			var commands = entry.commands;
+
+			commands.forEach(function (cmd) {
+				apply_move(players[pid], cmd);
+			})
+			apply_mouse(player, entry.mouseX, entry.mouseY);
+
+			past_moves.push({
+				'cmd_id':entry.cmd_id,
+				'timestamp':game_time,
+				'state':clone(player)
+			})
+		})
+	}
+
+	this.state_update = function(msg) {
+		var snapshot = parse(msg)
+	}
+
+	function parse(msg) {
+		
+	}
+
+	function apply_move(obj, move) {
+		var dist = Math.floor(player_speed * client_speed);
+		if (move == 'UP')    obj.y -= dist;
+		if (move == 'DOWN')  obj.y += dist;
+		if (move == 'LEFT')  obj.x -= dist;
+		if (move == 'RIGHT') obj.x += dist;
+
+		if (obj.x < 0)       obj.x = 0;
+		if (obj.x > world_x) obj.x = world_x;
+		if (obj.y < 0)       obj.y = 0;
+		if (obj.y > world_y) obj.y = world_y;
+	}
+
+	function apply_mouse(obj, mx, my) {
+		obj.a = Math.atan2((mx-obj.x), (my-obj.y));
+	}
+
+	function clone(obj) {
+		return JSON.parse(JSON.stringify(obj));
 	}
 }
