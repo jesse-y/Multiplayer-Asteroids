@@ -94,16 +94,16 @@ function game_state(client_speed) {
 		if (last_id && curr_id && index >= 0) {
 			window.print_msg('reconcile', 'unacked moves: '+past_moves.length);
 
-			//console.log('index='+index+', last_id='+last_id+', curr_id='+curr_id+', length='+past_moves.length);
 			var client_state = past_moves[index].state;
 			var server_state = snapshot.state.players[pid].state;
 
-			//force sync prediction errors
+			//calculate prediction errors
 			predict_err.x = (client_state.x - server_state.x) * -1;
 			predict_err.y = (client_state.y - server_state.y) * -1;
 
 			if (predict_err.x != 0 || predict_err.y != 0) {
 				console.log('prediction error: client=[x:'+client_state.x+',y:'+client_state.y+'], server=[x:'+server_state.x+',y:'+server_state.y+'], predict_err[x:'+predict_err.x+',y:'+predict_err.y+']')
+				//apply non-zero prediction errors and update past move history to match
 				player.x += predict_err.x;
 				player.y += predict_err.y;
 				update_history();
