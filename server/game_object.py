@@ -1,7 +1,14 @@
 from math import sin, cos, floor
 from datatypes import Position, Vector, Rectangle
+from settings import WORLD_X, WORLD_Y, PLAYER_SPEED, BULLET_SPEED
 
 class GameObject:
+
+	obj_type_speed = {
+		'player': PLAYER_SPEED,
+		'bullet': BULLET_SPEED
+	}
+
 	def __init__(self, pos=Position(0,0), vec=Vector(0,0), rec=Rectangle(0,0,0,0), angle=0, oid=None, obj_type=None):
 		self.pos = pos
 		self.vec = vec
@@ -14,15 +21,26 @@ class GameObject:
 	def __str__(self):
 		return '{} {} {}'.format(self.pos, self.vec, self.rec)
 
+	def get_speed(self):
+		try:
+			speed = self.obj_type_speed.get(self.type)
+		except:
+			print('GO>get_obj_speed: could not find speed for obj type={}'.format(self.type))
+			speed = 1
+		return speed
+
 	def move(self, dt=1, speed=1):
+		speed = self.get_speed()
+
 		x, y = self.pos.x, self.pos.y
-		#NOTE: floor() Behaves differently for negative values compared to javascript's Math.floor()!!
+
+		#NOTE: apply floor() to absolute values before adding/subtracting position/velocities
 		x += floor(speed * dt) * self.vec.x
 		y += floor(speed * dt) * self.vec.y
 
-		if x > 640 : x = 640
+		if x > WORLD_X : x = WORLD_X
 		if x < 0   : x = 0
-		if y > 480 : y = 480
+		if y > WORLD_Y : y = WORLD_Y
 		if y < 0   : y = 0
 
 		#print('GO>move: x:{}->{}, y:{}->{}'.format(self.pos.x, x, self.pos.y, y))
@@ -31,13 +49,13 @@ class GameObject:
 		#reset the vector to wait for additional input
 		self.vec = Vector(0,0)
 
-	def change_dir(self, angle=0, dt=1, speed=1):
+	def forward(self, dt=1, speed=1, angle=None):
 		if angle is None: angle = self.angle
-		x, y = self.vec.x, self.vec.y
+		speed = self.get_speed()
+		x, y = self.pos.x, self.pos.y
 		x += dt * speed * sin(angle)
 		y += dt * speed * cos(angle)
-		#print('GO>change_dir: angle:{}, x:{}->{}, y:{}->{}'.format(angle, self.vec.x, x, self.vec.y, y))
-		self.vec = Vector(x, y)
+		self.pos = Position(int(x), int(y))
 
 	def colliding(self, other):
 		pass

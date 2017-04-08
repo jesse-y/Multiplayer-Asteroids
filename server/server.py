@@ -90,7 +90,7 @@ def new_player(app, username, ws):
 		msg = json.dumps([MSG_ERROR,'max users reached'])
 		ws.send_str(msg)
 		return None
-	player = Player(User(uid, username, ws), GameObject())
+	player = Player(User(uid, username, ws), GameObject(obj_type='player'))
 	app['searching'].put_nowait(player)
 	
 	return player

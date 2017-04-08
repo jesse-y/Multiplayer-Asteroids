@@ -2,7 +2,8 @@
 	var keys = {};
 	var mouse = {
 		x: 0,
-		y:0
+		y:0,
+		clicked:false
 	};
 
 	function setKey(event, status) {
@@ -32,17 +33,23 @@
 
 	document.addEventListener('keydown', function(e) {
 		setKey(e, true);
-	});
+	})
 	document.addEventListener('keyup', function(e) {
 		setKey(e, false);
-	});
+	})
 	document.addEventListener('blur', function () {
 		keys= {};
-	});
+	})
 	document.addEventListener('mousemove', function(e) {
 		mouse.x = e.clientX;
 		mouse.y = e.clientY;
-	});
+	})
+	document.addEventListener('mousedown', function(e) {
+		mouse.clicked = true;
+	})
+	document.addEventListener('mouseup', function(e) {
+		mouse.clicked = false;
+	})
 
 	window.input = {
 		is_down: function(key) {
@@ -56,6 +63,9 @@
 		},
 		mouseY: function() {
 			return mouse.y;
+		},
+		mouse_clicked: function() {
+			return mouse.clicked;
 		},
 		get_commands: function() {
 			var commands = [];
@@ -124,13 +134,14 @@ function input_handler() {
 				'cmd_id':cmd_id,
 				'commands':commands,
 				'mouseX':cx,
-				'mouseY':cy
+				'mouseY':cy,
+				'clicked':window.input.mouse_clicked()
 			}
 
 			registered_cmds.push(move);
 
 			cmd_id += 1;
-			//console.log('input last cmd_id: '+cmd_id);
+
 			ws.send(JSON.stringify([window.netm.MSG_MOVE, move]));
 		}
 	}

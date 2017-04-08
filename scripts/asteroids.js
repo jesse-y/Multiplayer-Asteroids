@@ -156,7 +156,7 @@ function open_handler(e) {
 }
 
 function message_handler(e) {
-	window.print_msg('status', 'got new message: '+ e.data);
+	//window.print_msg('status', 'got new message: '+ e.data);
 	var msg;
 
 	try { msg = JSON.parse(e.data) }

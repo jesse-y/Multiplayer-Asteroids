@@ -6,7 +6,11 @@ WORLD_Y = 480
 GAME_SPEED = 60
 SEND_RATE = 20
 MAX_PLAYERS = 1
-PLAYER_SPEED = 200
+
+#game object settings
+PLAYER_SPEED = 250
+BULLET_SPEED = 500
+
 ENEMY_SPEED = 100
 
 #client settings

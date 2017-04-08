@@ -75,6 +75,13 @@ function game_client() {
 			var ship = frame.state.players[key];
 			render_ship(ship.pid, ship.state, true);
 		}
+		//render entities
+		for (var key in frame.state.entities) {
+			var entity = frame.state.entities[key];
+			if (entity.type === 'bullet') {
+				render_bullet(entity);
+			}
+		}
 		//render predicted player
 		var pp = frame.predicted_player;
 		render_ship(pp.pid, pp, false);
@@ -116,6 +123,18 @@ function game_client() {
 		} else {
 			ctx.fill();
 		}
+
+		ctx.restore();
+	}
+
+	function render_bullet(state) {
+		ctx.save();
+
+		ctx.translate(state.x, state.y);
+		ctx.rotate(-state.a);
+
+		ctx.fillStyle = '#000000';
+		ctx.fillRect(-2,-2,4,4);
 
 		ctx.restore();
 	}

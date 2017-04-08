@@ -83,7 +83,19 @@ class Game:
 
 	def update_entities(self, dt):
 		for player in self.players.values():
-			player.go.move(dt=1./settings.CLIENT_RATE, speed=settings.PLAYER_SPEED)
+			player.go.move(dt=1./settings.CLIENT_RATE)
+			self.entities.update(player.spawn_entities(self.oidm))
+
+		to_remove = []
+		for entity in self.entities.values():
+			entity.forward(dt)
+			if entity.pos.x < 0                or \
+			   entity.pos.x > settings.WORLD_X or \
+			   entity.pos.y < 0                or \
+			   entity.pos.y > settings.WORLD_Y:
+			   to_remove.append(entity.oid)
+		for key in to_remove:
+			del self.entities[key]
 
 	def check_collisions(self):
 		pass

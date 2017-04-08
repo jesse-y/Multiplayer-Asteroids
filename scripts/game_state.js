@@ -1,6 +1,6 @@
 function game_state(client_speed) {
 	//const game values
-	var player_speed = 200;
+	var player_speed = 250;
 	var client_speed = 1/30;
 	var world_x = 640;
 	var world_y = 480;
@@ -49,6 +49,7 @@ function game_state(client_speed) {
 			if (player != undefined) {
 				var commands = entry.commands;
 
+				//apply game logic to input to determine predicted player state
 				commands.forEach(function (cmd) {
 					apply_move(player, cmd);
 				})
@@ -72,6 +73,8 @@ function game_state(client_speed) {
 	}
 
 	this.state_update = function(msg) {
+		window.print_msg('status', 'new state: num_players='+Object.keys(msg.state.players).length+', num_entities='+Object.keys(msg.state.entities).length);
+
 		var snapshot = parse(msg);
 		game_time = snapshot.timestamp;
 
@@ -91,7 +94,7 @@ function game_state(client_speed) {
 		}
 
 		//reconcile last input only if the last id we received exists in our past_moves array		
-		if (last_id && curr_id && index >= 0) {
+		if (index >= 0 && index < past_moves.length) {
 			window.print_msg('reconcile', 'unacked moves: '+past_moves.length);
 
 			var client_state = past_moves[index].state;
@@ -125,9 +128,6 @@ function game_state(client_speed) {
 		//we cannot return an interpolated frame if from and to snapshots don't exist
 		if (from == undefined || to == undefined) return;
 
-		interp.timestamp += dt;
-		var frac_t = ((interp.timestamp - from.timestamp) / (to.timestamp - from.timestamp));
-
 		//debug prediction info
 		var debug_str = 'local: [x: ' + Math.floor(player.x) + 
 			', y: ' + Math.floor(player.y) + 
@@ -136,6 +136,11 @@ function game_state(client_speed) {
 			', mouseY: ' + window.input.mouseY() + ']';
 		window.print_msg('local_predict', debug_str);
 
+		interp.timestamp += dt;
+		var frac_t = ((interp.timestamp - from.timestamp) / (to.timestamp - from.timestamp));
+
+		var to_remove_players = [];
+		var to_remove_entities = [];
 		//interpolate players
 		for (var key in interp.state.players) {
 			if (to.state.players.hasOwnProperty(key)) {
@@ -145,15 +150,26 @@ function game_state(client_speed) {
 				tp = to.state.players[key].state;
 
 				//tween translation
-				server_player.x = fp.x + ((tp.x-fp.x) * frac_t);
-				server_player.y = fp.y + ((tp.y-fp.y) * frac_t);
+				server_player.x = tween(fp.x, tp.x, frac_t);
+				server_player.y = tween(fp.y, tp.y, frac_t);
 
 				//tween rotation
-				var adiff = (tp.a-fp.a);
-				if (adiff < -Math.PI) adiff += 2*Math.PI;
-				if (adiff > Math.PI) adiff -= 2*Math.PI;
+				server_player.a = tween_rot(fp.a, tp.a, frac_t);
+			} else {
+				to_remove_players.push(key);
+			}
+		}
+		//interpolate entities
+		for (var key in interp.state.entities) {
+			if (to.state.entities.hasOwnProperty(key)) {
+				var server_entity = interp.state.entities[key];
+				fe = from.state.entities[key];
+				te = from.state.entities[key];
 
-				server_player.a = fp.a + (adiff * frac_t);
+				server_entity.x = tween(fe.x, te.x, frac_t);
+				server_entity.y = tween(fe.y, te.y, frac_t);
+			} else {
+				to_remove_entities.push(key);
 			}
 		}
 		//add predicted player to the frame object and interpolate errors
@@ -163,7 +179,28 @@ function game_state(client_speed) {
 
 		//TO DO: check collisions and update animations
 
+		//delete objects that require removal
+		to_remove_players.forEach(function (entry) {
+			delete from.state.players[entry];
+			delete interp.state.players[entry];
+		})
+		to_remove_entities.forEach(function (entry) {
+			delete from.state.entities[entry];
+			delete interp.state.entities[entry];
+		})
+
 		return interp;
+	}
+
+	function tween(f, t, frac) {
+		return (f + ((t - f) * frac));
+	}
+
+	function tween_rot(f, t, frac) {
+		var diff = t - f;
+		if (diff < -Math.PI) diff += 2*Math.PI;
+		if (diff > Math.PI) diff -= 2*Math.PI;
+		return (f + (diff * frac));
 	}
 
 	function parse(msg) {

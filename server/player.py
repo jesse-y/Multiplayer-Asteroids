@@ -4,6 +4,7 @@ from math import atan2
 import settings
 from datatypes import User, Vector
 from game_object import GameObject
+
 class Player:
 
 	keymap = {
@@ -30,9 +31,12 @@ class Player:
 		#the player id is specific to each game the player is in
 		self.pid = pid
 		self.go = go
+		self.clicked = False
 		#command id processing for reconciliation
 		self.last_id = -1
 		self.received_ids = 0
+		#player status info
+		self.last_shot = time.time()
 
 	def __hash__(self):
 		return hash(self.user)
@@ -45,16 +49,14 @@ class Player:
 		self.last_id = inputs[0]['cmd_id']
 		self.received_ids += 1
 
-		#angle = inputs[0]['angle']
-		moves = inputs[0]['commands']
-
+		#handle aiming and ship orientation
 		cx = inputs[0]['mouseX']
 		cy = inputs[0]['mouseY']
-
 		angle = atan2((cx-self.go.pos.x), (cy-self.go.pos.y))
-
 		self.go.angle = angle
 
+		#handle movement vector to apply next update iteration
+		moves = inputs[0]['commands']
 		x, y = 0, 0
 		for move in moves:
 			try:
@@ -62,9 +64,19 @@ class Player:
 				x, y = x + dx, y + dy
 			except:
 				print('p_{}:{}>input: invalid move: {}'.format(self.user.uid, self.user.username, move))
-				return
 		self.go.vec = Vector(x, y)
 
+		#handle shooting
+		self.clicked = inputs[0]['clicked']
+
+	def spawn_entities(self, oidm):
+		entities = {}
+		if self.clicked and (time.time() - self.last_shot) > 0.1:
+			oid = oidm.assign_id()
+			bullet = GameObject(pos=self.go.pos, angle=self.go.angle, oid=oid, obj_type='bullet')
+			entities[oid] = bullet
+			self.last_shot = time.time()
+		return entities
 
 	def build(self):
 		entity = {}
