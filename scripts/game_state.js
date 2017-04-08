@@ -182,7 +182,7 @@ function game_state(client_speed) {
 			fe = from.state.entities[debug_key];
 			te = to.state.entities[debug_key];
 
-			console.log('ie[x='+ie.x+',y='+ie.y+'], fe[x='+fe.x+',y='+fe.y+'], te[x='+te.x+',y='+te.y+']'+', frac_t='+frac_t);
+			//console.log('ie[x='+ie.x+',y='+ie.y+'], fe[x='+fe.x+',y='+fe.y+'], te[x='+te.x+',y='+te.y+']'+', frac_t='+frac_t);
 
 		}
 
