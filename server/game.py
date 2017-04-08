@@ -89,10 +89,10 @@ class Game:
 		to_remove = []
 		for entity in self.entities.values():
 			entity.forward(dt)
-			if entity.pos.x < 0                or \
-			   entity.pos.x > settings.WORLD_X or \
-			   entity.pos.y < 0                or \
-			   entity.pos.y > settings.WORLD_Y:
+			if entity.pos.x < -50                   or \
+			   entity.pos.x > settings.WORLD_X + 50 or \
+			   entity.pos.y < -50                   or \
+			   entity.pos.y > settings.WORLD_Y + 50:
 			   to_remove.append(entity.oid)
 		for key in to_remove:
 			del self.entities[key]

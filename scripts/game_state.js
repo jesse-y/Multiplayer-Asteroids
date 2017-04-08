@@ -121,8 +121,14 @@ function game_state(client_speed) {
 		to = snapshot;
 		interp = clone(from);
 	}
-
+	var elapsed = 1.2;
 	this.next_frame = function(dt) {
+		elapsed += dt;
+		if (elapsed > 1.0) {
+			window.print_msg('game_time', 'game_time='+Number(game_time).toFixed(2)+', fps='+Number(1/dt).toFixed(2));
+			elapsed = 0.0;
+		}
+
 		game_time += dt;
 
 		//we cannot return an interpolated frame if from and to snapshots don't exist
@@ -139,15 +145,13 @@ function game_state(client_speed) {
 		interp.timestamp += dt;
 		var frac_t = ((interp.timestamp - from.timestamp) / (to.timestamp - from.timestamp));
 
-		var to_remove_players = [];
-		var to_remove_entities = [];
 		//interpolate players
 		for (var key in interp.state.players) {
 			if (to.state.players.hasOwnProperty(key)) {
 				//get player if it exists in both from and to
 				var server_player = interp.state.players[key].state;
-				fp = from.state.players[key].state;
-				tp = to.state.players[key].state;
+				var fp = from.state.players[key].state;
+				var tp = to.state.players[key].state;
 
 				//tween translation
 				server_player.x = tween(fp.x, tp.x, frac_t);
@@ -155,23 +159,34 @@ function game_state(client_speed) {
 
 				//tween rotation
 				server_player.a = tween_rot(fp.a, tp.a, frac_t);
-			} else {
-				to_remove_players.push(key);
 			}
 		}
+
+		var debug_key;
 		//interpolate entities
 		for (var key in interp.state.entities) {
+			if (debug_key == undefined) debug_key = key;
 			if (to.state.entities.hasOwnProperty(key)) {
 				var server_entity = interp.state.entities[key];
-				fe = from.state.entities[key];
-				te = from.state.entities[key];
+				var fe = from.state.entities[key];
+				var te = to.state.entities[key];
 
 				server_entity.x = tween(fe.x, te.x, frac_t);
 				server_entity.y = tween(fe.y, te.y, frac_t);
-			} else {
-				to_remove_entities.push(key);
 			}
 		}
+
+		//print out info on the debug key
+		if (debug_key && to.state.entities.hasOwnProperty(debug_key)) {
+			var ie = interp.state.entities[debug_key];
+			fe = from.state.entities[debug_key];
+			te = to.state.entities[debug_key];
+
+			console.log('ie[x='+ie.x+',y='+ie.y+'], fe[x='+fe.x+',y='+fe.y+'], te[x='+te.x+',y='+te.y+']'+', frac_t='+frac_t);
+
+		}
+
+
 		//add predicted player to the frame object and interpolate errors
 		var predicted_player = clone(player);
 		predicted_player.pid = pid;
@@ -179,24 +194,16 @@ function game_state(client_speed) {
 
 		//TO DO: check collisions and update animations
 
-		//delete objects that require removal
-		to_remove_players.forEach(function (entry) {
-			delete from.state.players[entry];
-			delete interp.state.players[entry];
-		})
-		to_remove_entities.forEach(function (entry) {
-			delete from.state.entities[entry];
-			delete interp.state.entities[entry];
-		})
-
 		return interp;
 	}
 
 	function tween(f, t, frac) {
-		return (f + ((t - f) * frac));
+		if (frac > 1.0) return t;
+		return Math.round(f + ((t - f) * frac));
 	}
 
 	function tween_rot(f, t, frac) {
+		if (frac > 1.0) return t;
 		var diff = t - f;
 		if (diff < -Math.PI) diff += 2*Math.PI;
 		if (diff > Math.PI) diff -= 2*Math.PI;
