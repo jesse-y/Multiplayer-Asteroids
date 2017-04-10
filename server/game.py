@@ -95,6 +95,7 @@ class Game:
 			   entity.pos.y > settings.WORLD_Y + 50:
 			   to_remove.append(entity.oid)
 		for key in to_remove:
+			self.oidm.release_id(key)
 			del self.entities[key]
 
 	def check_collisions(self):

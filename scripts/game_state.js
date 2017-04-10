@@ -100,7 +100,7 @@ function game_state(client_speed) {
 			var client_state = past_moves[index].state;
 			var server_state = snapshot.state.players[pid].state;
 
-			//calculate prediction errors
+			//calculate prediction errors. multiply by -1 to correct errors by addition
 			predict_err.x = (client_state.x - server_state.x) * -1;
 			predict_err.y = (client_state.y - server_state.y) * -1;
 
@@ -121,6 +121,7 @@ function game_state(client_speed) {
 		to = snapshot;
 		interp = clone(from);
 	}
+
 	var elapsed = 1.2;
 	this.next_frame = function(dt) {
 		elapsed += dt;
@@ -162,10 +163,8 @@ function game_state(client_speed) {
 			}
 		}
 
-		var debug_key;
 		//interpolate entities
 		for (var key in interp.state.entities) {
-			if (debug_key == undefined) debug_key = key;
 			if (to.state.entities.hasOwnProperty(key)) {
 				var server_entity = interp.state.entities[key];
 				var fe = from.state.entities[key];
@@ -176,18 +175,7 @@ function game_state(client_speed) {
 			}
 		}
 
-		//print out info on the debug key
-		if (debug_key && to.state.entities.hasOwnProperty(debug_key)) {
-			var ie = interp.state.entities[debug_key];
-			fe = from.state.entities[debug_key];
-			te = to.state.entities[debug_key];
-
-			//console.log('ie[x='+ie.x+',y='+ie.y+'], fe[x='+fe.x+',y='+fe.y+'], te[x='+te.x+',y='+te.y+']'+', frac_t='+frac_t);
-
-		}
-
-
-		//add predicted player to the frame object and interpolate errors
+		//add predicted player to the frame object
 		var predicted_player = clone(player);
 		predicted_player.pid = pid;
 		interp.predicted_player = predicted_player;
