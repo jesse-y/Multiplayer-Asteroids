@@ -9,11 +9,16 @@ class GameObject:
 		'bullet': BULLET_SPEED
 	}
 
-	def __init__(self, pos=Position(0,0), vec=Vector(0,0), rec=Rectangle(0,0,0,0), angle=0, oid=None, obj_type=None):
+	def __init__(self, pos=Position(0,0), vec=Vector(0,0), shape=None, angle=0, oid=None, obj_type=None):
 		self.pos = pos
 		self.vec = vec
-		self.rec = rec
 		self.angle = angle
+
+		#default shape if not explicitly defined
+		if shape is None:
+			self.shape = Shape([pos, angle], [[0,20],[14,-14],[-14,-14]])
+		else:
+			self.shape = shape
 
 		self.oid = oid
 		self.type = obj_type
@@ -68,3 +73,24 @@ class GameObject:
 			'oid':self.oid,
 			'type':self.type
 		}
+
+import numpy as np
+
+class Shape:
+
+	def __init__(self, state, points):
+		self.centre, self.angle = state
+		self.points = np.array(points)
+
+	def world_points(self):
+		#add world centre coordinates to each point and rotate by the angle
+		return self.points + np.array([self.centre.x, self.centre.y])
+
+	def edge_normals(self):
+		x1 = self.points[:,0]
+		x1r = np.roll(x1, -1)
+
+		y1 = self.points[:,1]
+		y1r = np.roll(y1, -1)
+
+		return np.hstack([ (y1-y1r)[:,None], -(x1-x1r)[:,None] ])

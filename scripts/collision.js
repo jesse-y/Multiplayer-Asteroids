@@ -12,8 +12,8 @@ document.body.appendChild(canvas);
 //instructions
 var instructions01 = document.createElement('p');
 instructions01.innerHTML = "\
-This is a collision detection demo. You move the square with wasd or arrow keys. Press escape to stop the \
-simulation. At each step, each shape is projected against the other's edge normals. \
+This is a collision detection demo. You move the square with wasd or arrow keys, and can rotate it with J and L. \
+Press escape to stop the simulation. At each step, each shape is projected against the other's edge normals. \
 If there is at least one edge normal at which no overlap occurs, then these shapes have not collided.";
 document.body.appendChild(instructions01);
 
@@ -42,6 +42,7 @@ function cycle() {
 	var cmds = window.input.get_commands();
 	var cancel = false;
 	var pos = box.centre();
+	var angle = 0;
 	cmds.forEach(function (cmd) {
 		if (cmd == 'UP') pos.y -= 5;
 		if (cmd == 'DOWN') pos.y += 5;
@@ -49,7 +50,10 @@ function cycle() {
 		if (cmd == 'RIGHT') pos.x += 5;
 		if (cmd == 'ESCAPE') cancel = true;
 	})
+	if (window.input.is_down('J')) angle -= 0.05;
+	if (window.input.is_down('L')) angle += 0.05;
 	box.move(pos.x, pos.y);
+	box.rotate(angle);
 
 	var tri_norms = tri.get_normals();
 	var box_norms = box.get_normals();
@@ -141,6 +145,18 @@ function shape(centre, shape_points) {
 		centre = new vector2d(x, y);
 	}
 
+	this.rotate = function(angle) {
+		var new_points = [];
+		var c = Math.cos(angle);
+		var s = Math.sin(angle);
+		points.forEach(function (p) {
+			var xr = p.x * c - p.y * s;
+			var yr = p.x * s + p.y * c;
+			new_points.push(new vector2d(xr, yr));
+		})
+		points = new_points;
+	}
+
 	this.true_points = function () {
 		var result = [];
 		points.forEach(function (point) {
@@ -164,7 +180,6 @@ function shape(centre, shape_points) {
 			var y2 = p2.y + centre.y;
 
 			var vector = new vector2d(x1-x2, y1-y2);
-
 			var mag = Math.sqrt(vector.x**2 + vector.y**2);
 
 			edge_normals.push(new vector2d(vector.y/mag, (vector.x/mag)*-1));
