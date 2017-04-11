@@ -33,6 +33,9 @@ var ctx = canvas.getContext('2d');
 var box = new shape([200,320], [[35,35],[35,-35],[-35,-35],[-35,35]]);
 var tri = new shape([320,240], [[0,50],[35,-35],[-35,-35]]);
 
+//error reporting
+var sum_angle = 0;
+
 cycle();
 
 function cycle() {
@@ -50,10 +53,12 @@ function cycle() {
 		if (cmd == 'RIGHT') pos.x += 5;
 		if (cmd == 'ESCAPE') cancel = true;
 	})
-	if (window.input.is_down('J')) angle -= 0.05;
-	if (window.input.is_down('L')) angle += 0.05;
+	if (window.input.is_down('J')) {angle -= 0.05; sum_angle -= 0.05;}
+	if (window.input.is_down('L')) {angle += 0.05; sum_angle += 0.05;}
 	box.move(pos.x, pos.y);
 	box.rotate(angle);
+
+	console.log('box position: ', pos.x, pos.y, 'box angle: ', sum_angle);
 
 	var tri_norms = tri.get_normals();
 	var box_norms = box.get_normals();
@@ -67,8 +72,12 @@ function cycle() {
 		var proj_box = new projection(box.true_points(), n);
 
 		var colour;
-		if (proj_tri.overlaps(proj_box)) colour = '#ff0000';
-		else colour = '#0000ff';
+		if (proj_tri.overlaps(proj_box)) {
+			colour = '#ff0000';
+			num_collisions+=1;
+		} else {
+			colour = '#0000ff';
+		}
 
 		var c = tri.centre();
 
@@ -82,8 +91,6 @@ function cycle() {
 
 		draw_dot(proj_box.min*n.x+c.x, proj_box.min*n.y+c.y, colour);
 		draw_dot(proj_box.max*n.x+c.x, proj_box.max*n.y+c.y, colour);
-
-		if (proj_tri.overlaps(proj_box)) num_collisions += 1;
 	})
 
 	//use box norms to check collisions
@@ -92,8 +99,12 @@ function cycle() {
 		var proj_box = new projection(box.true_points(), n);
 
 		var colour;
-		if (proj_tri.overlaps(proj_box)) colour = '#ff0000';
-		else colour = '#0000ff';
+		if (proj_tri.overlaps(proj_box)) {
+			colour = '#ff0000';
+			num_collisions+=1;
+		} else {
+			colour = '#0000ff';
+		}
 
 		var c = box.centre();
 
@@ -104,8 +115,6 @@ function cycle() {
 
 		draw_dot(proj_box.min*n.x+c.x, proj_box.min*n.y+c.y, colour);
 		draw_dot(proj_box.max*n.x+c.x, proj_box.max*n.y+c.y, colour);
-
-		if (proj_tri.overlaps(proj_box)) num_collisions += 1;
 	})
 
 	if (num_collisions == tri_norms.length+box_norms.length) colliding = true;
@@ -223,9 +232,25 @@ function projection(shape, axis) {
 	this.max /= 2;
 
 	this.overlaps = function(other) {
-		if (this.max < other.min) return false;
-		if (other.max < this.min) return false;
+		//overlap method using arithmetic. arithmetic overlap can allow for vectorisation
+		var check1 = this.max -other.min;
+		if (check1 < 0) {
+			return false;
+		}
+		var check2 = other.max - this.min;
+		if (check2 < 0) {
+			return false;
+		}
 		return true;
+		/*
+		//overlap method using variable equality. cannot vectorise with this method
+		if (this.max < other.min) {
+			return false;
+		}
+		if (other.max < this.min) {
+			return false;
+		}
+		return true;*/
 	}
 }
 

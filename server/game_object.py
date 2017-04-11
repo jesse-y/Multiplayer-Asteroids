@@ -1,6 +1,7 @@
 from math import sin, cos, floor
 from datatypes import Position, Vector, Rectangle
 from settings import WORLD_X, WORLD_Y, PLAYER_SPEED, BULLET_SPEED
+from shape import Shape
 
 class GameObject:
 
@@ -73,24 +74,3 @@ class GameObject:
 			'oid':self.oid,
 			'type':self.type
 		}
-
-import numpy as np
-
-class Shape:
-
-	def __init__(self, state, points):
-		self.centre, self.angle = state
-		self.points = np.array(points)
-
-	def world_points(self):
-		#add world centre coordinates to each point and rotate by the angle
-		return self.points + np.array([self.centre.x, self.centre.y])
-
-	def edge_normals(self):
-		x1 = self.points[:,0]
-		x1r = np.roll(x1, -1)
-
-		y1 = self.points[:,1]
-		y1r = np.roll(y1, -1)
-
-		return np.hstack([ (y1-y1r)[:,None], -(x1-x1r)[:,None] ])
