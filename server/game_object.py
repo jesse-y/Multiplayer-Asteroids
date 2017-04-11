@@ -14,13 +14,12 @@ class GameObject:
 		self.pos = pos
 		self.vec = vec
 		self.angle = angle
-
-		#default shape if not explicitly defined
-		if shape is None:
+		
+		if shape is None and obj_type == 'player':
 			self.shape = Shape([pos, angle], [[0,20],[14,-14],[-14,-14]])
 		else:
 			self.shape = shape
-
+		
 		self.oid = oid
 		self.type = obj_type
 
@@ -51,6 +50,8 @@ class GameObject:
 
 		#print('GO>move: x:{}->{}, y:{}->{}'.format(self.pos.x, x, self.pos.y, y))
 		self.pos = Position(int(x), int(y))
+
+		self.shape.update(Position(int(x), int(y)), self.angle)
 
 		#reset the vector to wait for additional input
 		self.vec = Vector(0,0)

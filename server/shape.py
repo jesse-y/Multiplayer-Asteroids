@@ -6,7 +6,14 @@ class Shape:
 
 	def __init__(self, state, points):
 		self.centre, self.angle = state
+
+		if type(self.centre) == list: self.centre = Position(self.centre[0], self.centre[1])
+
 		self.points = np.array(points)
+
+	def update(self, centre, angle):
+		self.centre = centre
+		self.angle = angle
 
 	def world_points(self):
 		#add world centre coordinates to each point and rotate by its angle
@@ -79,6 +86,11 @@ if __name__ == '__main__':
 	tri = Shape([Position(320,240),0], [[0,50], [35,-35], [-35,-35]])
 
 	print('box=[{},{}], tri=[{},{}], colliding={}=>False'.format(200,320,320,240,tri.colliding(box)))
+
+	box = Shape([[200,320],0], [[35,35], [35,-35], [-35,-35], [-35,35]])
+	tri = Shape([Position(320,240),0], [[0,50], [35,-35], [-35,-35]])
+
+	print('box=[{},{}], tri=[{},{}], colliding={}=>False (check initialisation)'.format(200,320,320,240,tri.colliding(box)))
 
 	box = Shape([Position(275,250),0], [[35,35], [35,-35], [-35,-35], [-35,35]])
 	tri = Shape([Position(320,240),0], [[0,50], [35,-35], [-35,-35]])

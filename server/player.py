@@ -25,7 +25,7 @@ class Player:
 		'RIGHT': Vector(1, 0)
 	}
 
-	def __init__(self, user, go=GameObject(), pid=-1):
+	def __init__(self, user, go=None, pid=-1):
 		#the user id is specific to each server process
 		self.user = user
 		#the player id is specific to each game the player is in
@@ -73,7 +73,14 @@ class Player:
 		entities = {}
 		if self.clicked and (time.time() - self.last_shot) > 0.1:
 			oid = oidm.assign_id()
-			bullet = GameObject(pos=self.go.pos, angle=self.go.angle, oid=oid, obj_type='bullet')
+			
+			bullet = GameObject(
+				pos=self.go.pos, 
+				angle=self.go.angle, 
+				shape=Shape([self.go.pos, self.go.angle], [[2,2],[2,-2],[-2,-2],[-2,2]]), 
+				oid=oid, 
+				obj_type='bullet')
+
 			entities[oid] = bullet
 			self.last_shot = time.time()
 		return entities
