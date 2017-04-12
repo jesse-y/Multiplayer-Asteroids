@@ -4,6 +4,7 @@ from math import atan2
 import settings
 from datatypes import User, Vector
 from game_object import GameObject
+from shape import Shape
 
 class Player:
 
@@ -71,7 +72,7 @@ class Player:
 
 	def spawn_entities(self, oidm):
 		entities = {}
-		if self.clicked and (time.time() - self.last_shot) > 0.1:
+		if self.clicked and (time.time() - self.last_shot) > 0.2:
 			oid = oidm.assign_id()
 			
 			bullet = GameObject(

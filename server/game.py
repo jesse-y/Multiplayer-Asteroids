@@ -7,6 +7,8 @@ from player import Player
 from datatypes import MSG_JOIN, MSG_QUIT, MSG_ERROR, MSG_START, MSG_G_STATE
 from datatypes import Position
 from id_manager import IdManager, IdManagerException
+from game_object import GameObject
+from shape import Shape
 
 class Game:
 
@@ -21,6 +23,8 @@ class Game:
 
 		self.players = {}
 		self.entities = {}
+
+		self.events = {}
 
 		self.game_time = 0.
 		self.send_ticker = 0
@@ -80,6 +84,15 @@ class Game:
 			#player.go.pos = Position(320,240)
 			player.go.pos = Position(x,y)
 			x += 150
+		#create test collision object
+		oid = self.oidm.assign_id()
+		self.entities[oid] = GameObject(
+			pos=Position(320,320), 
+			angle=0, 
+			shape=Shape([Position(320,320), 0], [[40,40],[40,-40],[-40,-40],[-40,40]]),
+			oid=oid, 
+			obj_type='block'
+		)
 
 	def update_entities(self, dt):
 		for player in self.players.values():
@@ -94,6 +107,10 @@ class Game:
 			   entity.pos.y < -50                   or \
 			   entity.pos.y > settings.WORLD_Y + 50:
 			   to_remove.append(entity.oid)
+			for player in self.players.values():
+				if entity.shape.colliding(player.go.shape):
+					self.events[entity.oid] = entity.shape.world_points().tolist()
+					self.events['p'+str(player.pid)] = player.go.shape.world_points().tolist()
 		for key in to_remove:
 			self.oidm.release_id(key)
 			del self.entities[key]
@@ -109,6 +126,8 @@ class Game:
 			msg['players'][player.pid] = player.build()
 		for entity in self.entities.values():
 			msg['entities'][entity.oid] = entity.build()
+		msg['events'] = self.events
+		self.events = {}
 		return msg
 
 	def next_frame(self):

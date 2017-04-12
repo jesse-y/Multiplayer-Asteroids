@@ -81,10 +81,19 @@ function game_client() {
 			if (entity.type === 'bullet') {
 				render_bullet(entity);
 			}
+			if (entity.type === 'block') {
+				render_block(entity, '#000000');
+			}
 		}
 		//render predicted player
 		var pp = frame.predicted_player;
 		render_ship(pp.pid, pp, false);
+
+		if (frame.state.hasOwnProperty('events')) {
+			for (var key in frame.state.events) {
+				render_points(frame.state.events[key]);
+			}
+		}
 	}
 
 	function render_ship(_pid, state, debug) {
@@ -124,6 +133,32 @@ function game_client() {
 			ctx.fill();
 		}
 
+		ctx.restore();
+	}
+
+	function render_block(state, colour) {
+		ctx.save();
+
+		ctx.translate(state.x, state.y);
+		ctx.rotate(-state.a);
+
+		ctx.fillStyle = colour;
+		ctx.fillRect(-40,-40,80,80);
+
+		ctx.restore();
+	}
+
+	function render_points(points) {
+		ctx.save();
+
+		ctx.strokeStyle = '#ff0000';
+		ctx.beginPath();
+		ctx.moveTo(points[0][0], points[0][1]);
+		points.slice(1).forEach(function (p) {
+			ctx.lineTo(p[0], p[1]);
+		});
+		ctx.lineTo(points[0][0], points[0][1]);
+		ctx.stroke();
 		ctx.restore();
 	}
 

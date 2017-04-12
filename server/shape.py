@@ -116,3 +116,8 @@ if __name__ == '__main__':
 	tri = Shape([Position(320,240),0], [[0,50], [35,-35], [-35,-35]])
 
 	print('box=[{},{}]+angle=-0.7**, tri=[{},{}] colliding={}=>True'.format(245,215,320,240,tri.colliding(box)))
+
+	box = Shape([Position(320,320),0], [[40,40], [40,-40], [-40,-40], [-40,40]])
+	tri = Shape([Position(312,320),1.39], [[0,20], [14,-14], [-14,-14]])
+
+	print('box=[{},{}]+angle=1.39**, tri=[{},{}] colliding={}=>True'.format(320,320,312,240,tri.colliding(box)))

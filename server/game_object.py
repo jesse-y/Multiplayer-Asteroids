@@ -27,11 +27,16 @@ class GameObject:
 		return '{} {} {}'.format(self.pos, self.vec, self.rec)
 
 	def get_speed(self):
+		'''
 		try:
 			speed = self.obj_type_speed.get(self.type)
 		except:
-			print('GO>get_obj_speed: could not find speed for obj type={}'.format(self.type))
-			speed = 1
+			#print('GO>get_obj_speed: could not find speed for obj type={}'.format(self.type))
+			speed = 0
+		'''
+		speed = self.obj_type_speed.get(self.type)
+		if speed is None:
+			speed = 0
 		return speed
 
 	def move(self, dt=1, speed=1):
@@ -63,6 +68,7 @@ class GameObject:
 		x += dt * speed * sin(angle)
 		y += dt * speed * cos(angle)
 		self.pos = Position(int(x), int(y))
+		self.shape.update(Position(int(x), int(y)), self.angle)
 
 	def colliding(self, other):
 		pass
