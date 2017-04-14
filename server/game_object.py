@@ -1,3 +1,5 @@
+import settings
+
 from math import sin, cos, floor
 from datatypes import Position, Vector, Rectangle
 from settings import WORLD_X, WORLD_Y, PLAYER_SPEED, BULLET_SPEED
@@ -5,26 +7,25 @@ from shape import Shape
 
 class GameObject:
 
-	obj_type_speed = {
-		'player': PLAYER_SPEED,
-		'bullet': BULLET_SPEED
-	}
+	default_speed = 0
+	default_shape = [[5,5],[5,-5],[-5,-5],[-5,5]]
 
-	def __init__(self, pos=Position(0,0), vec=Vector(0,0), shape=None, angle=0, oid=None, obj_type=None):
+	def __init__(self, pos=Position(0,0), angle=0, oid=None, obj_type=None):
 		self.pos = pos
-		self.vec = vec
 		self.angle = angle
-		
-		if shape is None and obj_type == 'player':
-			self.shape = Shape([pos, angle], [[0,20],[14,-14],[-14,-14]])
-		else:
-			self.shape = shape
+		self.vec = Vector(0,0)
 		
 		self.oid = oid
 		self.type = obj_type
 
+		if settings.obj_type_shape.get(self.type) is not None:
+			self.shape = Shape([pos, angle], settings.obj_type_shape.get(self.type))
+		else:
+			print('GO>__init__: could not find object shape of type={}'.format(self.type))
+			self.shape = Shape([pos, angle], default_shape)
+
 	def __str__(self):
-		return '{} {} {}'.format(self.pos, self.vec, self.rec)
+		return '{} {} {}'.format(self.pos, self.angle)
 
 	def get_speed(self):
 		'''
@@ -34,9 +35,9 @@ class GameObject:
 			#print('GO>get_obj_speed: could not find speed for obj type={}'.format(self.type))
 			speed = 0
 		'''
-		speed = self.obj_type_speed.get(self.type)
+		speed = settings.obj_type_speed.get(self.type)
 		if speed is None:
-			speed = 0
+			speed = default_speed
 		return speed
 
 	def move(self, dt=1, speed=1):

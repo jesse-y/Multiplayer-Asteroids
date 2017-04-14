@@ -6,7 +6,7 @@ from collections import deque
 from player import Player
 from datatypes import MSG_JOIN, MSG_QUIT, MSG_ERROR, MSG_START, MSG_G_STATE
 from datatypes import Position
-from id_manager import IdManager, IdManagerException
+from id_manager import IdManager
 from game_object import GameObject
 from shape import Shape
 
@@ -14,7 +14,6 @@ class Game:
 
 	def __init__(self, game_id=0):
 		self.game_id = game_id
-		self.pidm = IdManager(max_id=settings.MAX_PLAYERS)
 		self.oidm = IdManager()
 		self.ready = False
 		self.finished = False
@@ -43,12 +42,13 @@ class Game:
 			self.notify_single(player, [MSG_JOIN, new_player.user.uid, new_player.user.username])
 			p_list += [player.user.uid, player.user.username]
 
-		try:
-			new_player.pid = self.pidm.assign_id()
-		except IdManagerException as e:
-			print(str(e))
+		oid = self.oidm.assign_id()
+		if oid != -1 and len(self.players) < settings.MAX_PLAYERS:
+			new_player.go.oid = oid
+			new_player.pid = oid
+			self.players[new_player] = new_player
+		else:
 			return
-		self.players[new_player] = new_player
 
 		print('{}>join: sending player list to {}'.format(self, new_player))
 		self.notify_single(new_player, [MSG_JOIN, new_player.user.uid, new_player.user.username] + p_list)
@@ -59,8 +59,7 @@ class Game:
 	def disconnect_player(self, quitter):
 		if quitter in self.players:
 			del self.players[quitter]
-			self.pidm.release_id(quitter.pid)
-			quitter.pid = -1
+			self.oidm.release_id(quitter.pid)
 		else:
 			return
 
@@ -76,7 +75,7 @@ class Game:
 		self.create_world()
 		print('{}>start: sending start messages to all players'.format(self))
 		for player in self.players.values():
-			self.notify_single(player, [MSG_START, player.pid, self.game_time])
+			self.notify_single(player, [MSG_START, player.go.oid, self.game_time])
 
 	def create_world(self):
 		x, y = 200, 240
@@ -88,8 +87,7 @@ class Game:
 		oid = self.oidm.assign_id()
 		self.entities[oid] = GameObject(
 			pos=Position(320,320), 
-			angle=0, 
-			shape=Shape([Position(320,320), 0], [[40,40],[40,-40],[-40,-40],[-40,40]]),
+			angle=0,
 			oid=oid, 
 			obj_type='block'
 		)
@@ -110,7 +108,7 @@ class Game:
 			for player in self.players.values():
 				if entity.shape.colliding(player.go.shape):
 					self.events[entity.oid] = entity.shape.world_points().tolist()
-					self.events['p'+str(player.pid)] = player.go.shape.world_points().tolist()
+					self.events[player.pid] = player.go.shape.world_points().tolist()
 		for key in to_remove:
 			self.oidm.release_id(key)
 			del self.entities[key]

@@ -8,8 +8,8 @@ class IdManager:
 
 	def assign_id(self):
 		if self.last_id == self.max_id and self.max_id > 0:
-			err_str = 'IdManager: max ids requested. max_id=({})'.format(self.max_id)
-			raise IdManagerException(err_str)
+			print('IdManager: max ids requested. max_id=({})'.format(self.max_id))
+			return -1
 		if self.ids:
 			return self.ids.popleft()
 		else:
@@ -18,6 +18,3 @@ class IdManager:
 
 	def release_id(self, new_id):
 		self.ids.append(new_id)
-
-class IdManagerException(Exception):
-	pass

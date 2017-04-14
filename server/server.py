@@ -4,7 +4,7 @@ from aiohttp import web
 import json
 
 import settings
-from id_manager import IdManager, IdManagerException
+from id_manager import IdManager
 from datatypes import User, MSG_ERROR, MSG_JOIN, MSG_MOVE
 from player import Player
 from game_object import GameObject

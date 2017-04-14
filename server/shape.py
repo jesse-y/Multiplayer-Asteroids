@@ -39,7 +39,7 @@ class Shape:
 	def project(self, shape_norms):
 		#to get the projection, we need to dot product each shape point against
 		#each normal vector of the target. we need to transpose the normal vector to
-		#get desired behaviour.
+		#get desired matrix dimensions.
 		proj = self.world_points().dot(shape_norms.transpose())
 		#the first axis contains the result of each dot product PER EDGE NORMAL.
 		#we need to extract the minimum and maximum for each edge normal

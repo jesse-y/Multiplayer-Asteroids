@@ -89,6 +89,7 @@ function game_client() {
 		var pp = frame.predicted_player;
 		render_ship(pp.pid, pp, false);
 
+		//render events
 		if (frame.state.hasOwnProperty('events')) {
 			for (var key in frame.state.events) {
 				render_points(frame.state.events[key]);

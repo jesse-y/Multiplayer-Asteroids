@@ -4,7 +4,6 @@ from math import atan2
 import settings
 from datatypes import User, Vector
 from game_object import GameObject
-from shape import Shape
 
 class Player:
 
@@ -77,8 +76,7 @@ class Player:
 			
 			bullet = GameObject(
 				pos=self.go.pos, 
-				angle=self.go.angle, 
-				shape=Shape([self.go.pos, self.go.angle], [[2,2],[2,-2],[-2,-2],[-2,2]]), 
+				angle=self.go.angle,
 				oid=oid, 
 				obj_type='bullet')
 

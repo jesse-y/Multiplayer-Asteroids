@@ -73,6 +73,7 @@ function game_state(client_speed) {
 	}
 
 	this.state_update = function(msg) {
+		window.print_msg('cbs', JSON.stringify(msg));
 		window.print_msg('status', 'new state: num_players='+Object.keys(msg.state.players).length+', num_entities='+Object.keys(msg.state.entities).length);
 
 		var snapshot = parse(msg);
