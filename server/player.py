@@ -1,8 +1,8 @@
 import time
-from math import atan2
+from math import atan2, cos, sin
 
 import settings
-from datatypes import User, Vector
+from datatypes import User, Vector, Position
 from game_object import GameObject
 
 class Player:
@@ -47,6 +47,7 @@ class Player:
 	def input(self, inputs):
 		#inputs is an array of 1 item as an artifact from the way javascript's JSON.stringify handles input
 		self.last_id = inputs[0]['cmd_id']
+		#currently unused but kept for future use
 		self.received_ids += 1
 
 		#handle aiming and ship orientation
@@ -74,8 +75,11 @@ class Player:
 		if self.clicked and (time.time() - self.last_shot) > 0.2:
 			oid = oidm.assign_id()
 			
+			bx = sin(self.go.angle) * 20 + self.go.pos.x
+			by = cos(self.go.angle) * 20 + self.go.pos.y
+
 			bullet = GameObject(
-				pos=self.go.pos, 
+				pos=Position(bx, by), 
 				angle=self.go.angle,
 				oid=oid, 
 				obj_type='bullet')
@@ -88,7 +92,6 @@ class Player:
 		entity = self.go.build()
 		entity.update({
 			'pid':self.pid,
-			'last_id':self.last_id,
-			'received_ids':self.received_ids
+			'last_id':self.last_id
 		})
 		return entity

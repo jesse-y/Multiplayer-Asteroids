@@ -97,9 +97,12 @@ class Game:
 			player.go.move(dt=1./settings.CLIENT_RATE)
 			self.entities.update(player.spawn_entities(self.oidm))
 
-		to_remove = []
 		for entity in self.entities.values():
 			entity.forward(dt)
+
+	def check_collisions(self):
+		to_remove = []
+		for entity in self.entities.values():
 			if entity.pos.x < -50                   or \
 			   entity.pos.x > settings.WORLD_X + 50 or \
 			   entity.pos.y < -50                   or \
@@ -112,9 +115,6 @@ class Game:
 		for key in to_remove:
 			self.oidm.release_id(key)
 			del self.entities[key]
-
-	def check_collisions(self):
-		pass
 
 	def build_state(self):
 		msg = {}
