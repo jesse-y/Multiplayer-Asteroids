@@ -74,14 +74,14 @@ function game_state(client_speed) {
 
 	this.state_update = function(msg) {
 		window.print_msg('cbs', JSON.stringify(msg));
-		window.print_msg('status', 'new state: num_players='+Object.keys(msg.state.players).length+', num_entities='+Object.keys(msg.state.entities).length);
+		window.print_msg('status', 'new state: num_entities='+Object.keys(msg.state.entities).length);
 
 		var snapshot = parse(msg);
 		game_time = snapshot.timestamp;
 
 		if (to == undefined) {
 			//instantiate local predicted player starting position
-			var sp = snapshot.state.players[pid].state;
+			var sp = snapshot.state.entities[pid];
 			player = new Object;
 			player.x = sp.x;
 			player.y = sp.y;
@@ -89,7 +89,7 @@ function game_state(client_speed) {
 		}
 
 		if (past_moves.length != 0) {
-			var last_id = snapshot.state.players[pid].last_id;
+			var last_id = snapshot.state.entities[pid].last_id;
 			var curr_id = past_moves[past_moves.length - 1].cmd_id;
 			var index = past_moves.length - (curr_id - last_id) - 1;
 		}
@@ -99,7 +99,7 @@ function game_state(client_speed) {
 			window.print_msg('reconcile', 'unacked moves: '+past_moves.length);
 
 			var client_state = past_moves[index].state;
-			var server_state = snapshot.state.players[pid].state;
+			var server_state = snapshot.state.entities[pid];
 
 			//calculate prediction errors. multiply by -1 to correct errors by addition
 			predict_err.x = (client_state.x - server_state.x) * -1;
@@ -147,23 +147,6 @@ function game_state(client_speed) {
 		interp.timestamp += dt;
 		var frac_t = ((interp.timestamp - from.timestamp) / (to.timestamp - from.timestamp));
 
-		//interpolate players
-		for (var key in interp.state.players) {
-			if (to.state.players.hasOwnProperty(key)) {
-				//get player if it exists in both from and to
-				var server_player = interp.state.players[key].state;
-				var fp = from.state.players[key].state;
-				var tp = to.state.players[key].state;
-
-				//tween translation
-				server_player.x = tween(fp.x, tp.x, frac_t);
-				server_player.y = tween(fp.y, tp.y, frac_t);
-
-				//tween rotation
-				server_player.a = tween_rot(fp.a, tp.a, frac_t);
-			}
-		}
-
 		//interpolate entities
 		for (var key in interp.state.entities) {
 			if (to.state.entities.hasOwnProperty(key)) {
@@ -171,8 +154,12 @@ function game_state(client_speed) {
 				var fe = from.state.entities[key];
 				var te = to.state.entities[key];
 
+				//tween translation
 				server_entity.x = tween(fe.x, te.x, frac_t);
 				server_entity.y = tween(fe.y, te.y, frac_t);
+
+				//tween rotation
+				server_entity.a = tween_rot(fe.a, te.a, frac_t);
 			}
 		}
 
@@ -204,7 +191,7 @@ function game_state(client_speed) {
 			return msg;
 		} else {
 			//TO DO - only use if using a custom game state representation
-			return;
+			return msg;
 		}
 	}
 

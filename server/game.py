@@ -118,10 +118,9 @@ class Game:
 
 	def build_state(self):
 		msg = {}
-		msg['players'] = {}
 		msg['entities'] = {}
 		for player in self.players.values():
-			msg['players'][player.pid] = player.build()
+			msg['entities'][player.pid] = player.build()
 		for entity in self.entities.values():
 			msg['entities'][entity.oid] = entity.build()
 		msg['events'] = self.events

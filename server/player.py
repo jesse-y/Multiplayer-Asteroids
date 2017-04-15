@@ -85,9 +85,10 @@ class Player:
 		return entities
 
 	def build(self):
-		entity = {}
-		entity['state'] = self.go.build()
-		entity['pid'] = self.pid
-		entity['last_id'] = self.last_id
-		entity['received_ids'] = self.received_ids
+		entity = self.go.build()
+		entity.update({
+			'pid':self.pid,
+			'last_id':self.last_id,
+			'received_ids':self.received_ids
+		})
 		return entity

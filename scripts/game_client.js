@@ -70,18 +70,16 @@ function game_client() {
 
 		if (frame == undefined) return;
 
-		//render state players
-		for (var key in frame.state.players) {
-			var ship = frame.state.players[key];
-			render_ship(ship.pid, ship.state, true);
-		}
 		//render entities
 		for (var key in frame.state.entities) {
 			var entity = frame.state.entities[key];
-			if (entity.type === 'bullet') {
+			if (entity.type == 'player') {
+				render_ship(entity.pid, entity, true);
+			}
+			if (entity.type == 'bullet') {
 				render_bullet(entity);
 			}
-			if (entity.type === 'block') {
+			if (entity.type == 'block') {
 				render_block(entity, '#000000');
 			}
 		}
