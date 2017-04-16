@@ -83,12 +83,11 @@ async def game_loop(app, game):
 		player.user.ws.close()
 
 def new_player(app, username, ws):
-	try:
-		uid = app['uidm'].assign_id()
-	except IdManagerException as e:
-		print(str(e))
+	uid = app['uidm'].assign_id()
+	if uid == -1:
 		msg = json.dumps([MSG_ERROR,'max users reached'])
 		ws.send_str(msg)
+		ws.close()
 		return None
 	player = Player(User(uid, username, ws), GameObject(obj_type='player'))
 	app['searching'].put_nowait(player)

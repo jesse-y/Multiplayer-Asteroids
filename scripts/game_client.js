@@ -1,5 +1,7 @@
 function game_client() {
-	var client_speed = 1/30;
+	var client_speed;
+	var world_x = 640;
+	var world_y = 480;
 
 	var ws;
 	var gs = new game_state();
@@ -27,11 +29,16 @@ function game_client() {
 	//default object shapes
 	var shapes = {
 		player: [[0,20], [14,-14], [-14,-14]],
-		bullet: [[2,2], [2,-2], [-2,-2], [-2,2]]
+		bullet: [[2,2], [2,-2], [-2,-2], [-2,2]],
+		star: [[1,1], [1,-1], [-1,-1], [-1,1]]
 	}
+
+	//prepare background information
+	var stars = assign_stars();
 
 	var paused;
 	var last_time;
+
 	function main() {
 		if (paused) return;
 
@@ -59,9 +66,19 @@ function game_client() {
 
 		var pid = args[0];
 		var game_time = args[1];
+		var settings = args[2];
+
+		world_x = settings.x;
+		world_y = settings.y;
+		canvas.width = settings.x;
+		canvas.height = settings.y;
+		canvas.style.width = settings.x + 'px';
+		canvas.style.height = settings.y + 'px';
+
+		client_speed = 1/settings.client_rate;
 
 		ih.init(ws, client_speed);
-		gs.init(pid, game_time);
+		gs.init(pid, game_time, settings);
 		main();
 	}
 
@@ -71,22 +88,23 @@ function game_client() {
 
 	function render(frame) {
 		//render background
-		ctx.fillStyle = '#D9D9D9';
-		ctx.fillRect(0,0,canvas.width, canvas.height);
+		render_background();
+		//ctx.fillStyle = '#D9D9D9';
+		//ctx.fillRect(0,0,canvas.width, canvas.height);
 
 		if (frame == undefined) return;
 
 		//render entities
 		for (var key in frame.state.entities) {
 			var entity = frame.state.entities[key];
-			if (entity.type == 'player') {
+			if (entity.type == 'player' && entity.pid != gs.pid()) {
 				render_shape(entity, shapes.player, colours[entity.pid-1], false);
 			}
 			if (entity.type == 'bullet') {
-				render_shape(entity, shapes.bullet, '#000000', true);
+				render_shape(entity, shapes.bullet, '#ffffff', true);
 			}
 		}
-		
+
 		//render predicted player
 		var pp = frame.predicted_player;
 		render_shape(pp, shapes.player, colours[pp.pid-1], true);
@@ -140,14 +158,45 @@ function game_client() {
 		ctx.restore();
 	}
 
+	function render_background() {
+		ctx.fillStyle = '#000000';
+		ctx.fillRect(0,0,canvas.width, canvas.height);
+
+		stars.forEach(function (star) {
+			render_shape(star, shapes.star, '#424242', true);
+		})
+	}
+
+	function assign_stars() {
+		//number of stars in a 100px * 100px area
+		var star_density = 1;
+
+		var num_stars = ((world_x * world_y) / (100 * 100)) * star_density;
+
+		var result = [];
+		for (var i = 0; i < num_stars; i++) {
+			result.push({
+				x: Math.floor(Math.random() * world_x),
+				y: Math.floor(Math.random() * world_y),
+				a: Math.random() * Math.PI
+			})
+		}
+
+		return result;
+	}
+
 	this.reset_screen = function() {
 		paused = true;
+
+		canvas.width = world_x;
+		canvas.style.width = world_x + 'px';
+		canvas.height = world_y;
+		canvas.style.height = world_y + 'px';
+
 		ctx.fillStyle = '#D9D9D9';
 		ctx.fillRect(0,0,canvas.width, canvas.height);
 
 		ih.stop();
-
-		console.log(canvas.width, canvas.height);
 	};
 
 	this.reset_screen();	

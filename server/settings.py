@@ -13,9 +13,6 @@ BULLET_SPEED = 500
 
 ENEMY_SPEED = 100
 
-#client settings
-CLIENT_SPEED = 1./30
-
 #app settings
 MAX_USERS = 100
 
@@ -32,5 +29,4 @@ obj_type_speed = {
 obj_type_shape = {
 	'player': [[0,20],[14,-14],[-14,-14]],
 	'bullet': [[2,2],[2,-2],[-2,-2],[-2,2]],
-	'block': [[40,40],[40,-40],[-40,-40],[-40,40]]
 }

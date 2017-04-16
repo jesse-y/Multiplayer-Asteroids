@@ -1,9 +1,9 @@
-function game_state(client_speed) {
+function game_state() {
 	//const game values
 	var player_speed = 250;
-	var client_speed = 1/30;
-	var world_x = 640;
-	var world_y = 480;
+	var client_speed;
+	var world_x;
+	var world_y;
 
 	//game state
 	var game_time;
@@ -19,10 +19,18 @@ function game_state(client_speed) {
 	var past_moves;
 	var predict_err;
 
-	this.init = function(player_id, start_time) {
+	this.pid = function() {
+		return pid;
+	}
+
+	this.init = function(player_id, start_time, world) {
 		console.log('initialising game state');
 		pid = player_id;
 		game_time = start_time;
+
+		world_x = world.x;
+		world_y = world.y;
+		client_speed = 1/world.client_rate;
 
 		this.reset();
 	}

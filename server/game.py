@@ -79,7 +79,8 @@ class Game:
 		self.create_world()
 		print('{}>start: sending start messages to all players'.format(self))
 		for player in self.players.values():
-			self.notify_single(player, [MSG_START, player.go.oid, self.game_time])
+			self.notify_single(player, [MSG_START, player.go.oid, self.game_time, 
+				{ 'x': settings.WORLD_X, 'y':settings.WORLD_Y, 'client_rate': settings.CLIENT_RATE }])
 
 	def create_world(self):
 		x, y = 200, 240
@@ -87,14 +88,6 @@ class Game:
 			#player.go.pos = Position(320,240)
 			player.go.pos = Position(x,y)
 			x += 150
-		#create test collision object
-		oid = self.oidm.assign_id()
-		self.entities[oid] = GameObject(
-			pos=Position(320,320), 
-			angle=0,
-			oid=oid, 
-			obj_type='block'
-		)
 
 	def update_entities(self, dt):
 		for player in self.players.values():
