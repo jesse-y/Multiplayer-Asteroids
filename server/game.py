@@ -14,6 +14,7 @@ class Game:
 
 	def __init__(self, game_id=0):
 		self.game_id = game_id
+		self.pidm = IdManager(max_id=settings.MAX_PLAYERS)
 		self.oidm = IdManager()
 		self.ready = False
 		self.finished = False
@@ -43,11 +44,13 @@ class Game:
 			p_list += [player.user.uid, player.user.username]
 
 		oid = self.oidm.assign_id()
-		if oid != -1 and len(self.players) < settings.MAX_PLAYERS:
+		pid = self.pidm.assign_id()
+		if oid != -1 and pid != -1 and len(self.players) < settings.MAX_PLAYERS:
 			new_player.go.oid = oid
-			new_player.pid = oid
+			new_player.pid = pid
 			self.players[new_player] = new_player
 		else:
+			self.notify_single(new_player, [MSG_ERROR, 'max players reached'])
 			return
 
 		print('{}>join: sending player list to {}'.format(self, new_player))
@@ -59,7 +62,8 @@ class Game:
 	def disconnect_player(self, quitter):
 		if quitter in self.players:
 			del self.players[quitter]
-			self.oidm.release_id(quitter.pid)
+			self.oidm.release_id(quitter.go.oid)
+			self.pidm.release_id(quitter.pid)
 		else:
 			return
 
@@ -111,7 +115,7 @@ class Game:
 			for player in self.players.values():
 				if entity.shape.colliding(player.go.shape):
 					self.events[entity.oid] = entity.shape.world_points().tolist()
-					self.events[player.pid] = player.go.shape.world_points().tolist()
+					self.events[player.go.oid] = player.go.shape.world_points().tolist()
 		for key in to_remove:
 			self.oidm.release_id(key)
 			del self.entities[key]
@@ -120,7 +124,7 @@ class Game:
 		msg = {}
 		msg['entities'] = {}
 		for player in self.players.values():
-			msg['entities'][player.pid] = player.build()
+			msg['entities'][player.go.oid] = player.build()
 		for entity in self.entities.values():
 			msg['entities'][entity.oid] = entity.build()
 		msg['events'] = self.events

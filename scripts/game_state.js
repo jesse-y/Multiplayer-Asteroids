@@ -165,7 +165,7 @@ function game_state(client_speed) {
 
 		//add predicted player to the frame object
 		var predicted_player = clone(player);
-		predicted_player.pid = pid;
+		predicted_player.pid = from.state.entities[pid].pid;
 		interp.predicted_player = predicted_player;
 
 		//TO DO: check collisions and update animations
