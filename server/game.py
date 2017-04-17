@@ -1,6 +1,8 @@
 import settings
 import json
 import time
+import random
+import math
 from collections import deque
 
 from player import Player
@@ -97,13 +99,42 @@ class Game:
 		for entity in self.entities.values():
 			entity.forward(dt)
 
+	def spawn_asteroid(self):
+		oid = self.oidm.assign_id()
+
+		#choose spawn location
+		spawn_loc = random.sample([
+			[-50, random.randint(0, settings.WORLD_Y)],
+			[settings.WORLD_X + 50, random.randint(0, settings.WORLD_Y)],
+			[random.randint(0, settings.WORLD_X), -50],
+			[random.randint(0, settings.WORLD_X), settings.WORLD_Y + 50]
+		], 1)
+
+		#choose angle to move towards - a point somewhere close to the centre of the map
+		target_loc = [
+			random.randint(math.floor(settings.WORLD_X*0.25), math.floor(settings.WORLD_X*0.75)),
+			random.randint(math.floor(settings.WORLD_Y*0.25), math.floor(settings.WORLD_Y*0.75))
+		]
+
+		target_angle = math.atan2(target_loc[0]-spawn_loc[0][0], target_loc[1]-spawn_loc[0][1])
+
+		asteroid = GameObject(
+			pos=Position(spawn_loc[0][0], spawn_loc[0][1]),
+			angle=target_angle,
+			speed=random.randint(100,200),
+			oid=oid,
+			obj_type='asteroid'
+		)
+
+		self.entities[oid] = asteroid
+
 	def check_collisions(self):
 		to_remove = []
 		for entity in self.entities.values():
-			if entity.pos.x < -50                   or \
+			if (entity.pos.x < -50                   or \
 			   entity.pos.x > settings.WORLD_X + 50 or \
 			   entity.pos.y < -50                   or \
-			   entity.pos.y > settings.WORLD_Y + 50:
+			   entity.pos.y > settings.WORLD_Y + 50) and entity.dist_travelled > 100:
 			   to_remove.append(entity.oid)
 			for player in self.players.values():
 				if entity.shape.colliding(player.go.shape):
@@ -134,8 +165,10 @@ class Game:
 		self.update_entities(dt)
 		self.check_collisions()
 
-		self.last_time = time.time()
+		if random.random() < 1-.995:
+			self.spawn_asteroid()
 
+		self.last_time = time.time()
 		self.send_ticker += 1
 		if self.send_ticker % self.send_rate == 0:
 			msg = self.build_state()

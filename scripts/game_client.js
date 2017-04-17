@@ -1,7 +1,7 @@
 function game_client() {
 	var client_speed;
-	var world_x = 640;
-	var world_y = 480;
+	var world_x = 800;
+	var world_y = 600;
 
 	var ws;
 	var gs = new game_state();
@@ -19,8 +19,8 @@ function game_client() {
 	})();
 
 	var canvas = document.getElementById('viewport');
-	canvas.width = 640;
-	canvas.height = 480;
+	canvas.width = world_x;
+	canvas.height = world_y;
 	var ctx = canvas.getContext('2d');
 
 	//default ship colours
@@ -30,7 +30,8 @@ function game_client() {
 	var shapes = {
 		player: [[0,20], [14,-14], [-14,-14]],
 		bullet: [[2,2], [2,-2], [-2,-2], [-2,2]],
-		star: [[1,1], [1,-1], [-1,-1], [-1,1]]
+		star: [[1,1], [1,-1], [-1,-1], [-1,1]],
+		asteroid: [[50,50], [50,-50], [-50,-50], [-50,50]]
 	}
 
 	//prepare background information
@@ -102,6 +103,9 @@ function game_client() {
 			}
 			if (entity.type == 'bullet') {
 				render_shape(entity, shapes.bullet, '#ffffff', true);
+			}
+			if (entity.type == 'asteroid') {
+				render_shape(entity, shapes.asteroid, '#d9d9d9', true);
 			}
 		}
 

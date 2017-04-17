@@ -33,7 +33,20 @@ var ctx = canvas.getContext('2d');
 var box = new shape([200,320], [[35,35],[35,-35],[-35,-35],[-35,35]]);
 var tri = new shape([320,240], [[0,50],[35,-35],[-35,-35]]);
 
-//error reporting
+//random pentagon/hexagon shapes for asteroids
+//var tri = new shape([320,240], [[0,10], [12,5], [5,-7], [-2,-9], [-6,4]])
+//var tri = new shape([320,240], [[3,15], [13,5], [9,-9], [-11,-5], [-8,1]])
+//var tri = new shape([320,240], [[5,9], [15,9], [2,-12], [-16,-7], [-10,5]])
+
+//var tri = new shape([320,240], [[4,29], [30,12], [20,-25], [-5,-17], [-20,9]])
+//var tri = new shape([320,240], [[2,20], [28,3], [14,-22], [-8,-20], [-18,14]])
+//var tri = new shape([320,240], [[14,33], [28,2], [35,-30], [-10,-17], [-8,10]])
+
+//var tri = new shape([320,240], [[33,-2], [25,-30], [-15,-27], [-42,-6], [-13,31], [15,40]])
+//var tri = new shape([320,240], [[36,-1], [12,-43], [-21,-37], [-34,-1], [-23,29], [26,38]])
+//var tri = new shape([320,240], [[38,-6], [21,-30], [-14,-35], [-33,5], [-28,36], [18,26]])
+
+//variable for visualisation purposes
 var sum_angle = 0;
 
 cycle();
@@ -42,6 +55,7 @@ function cycle() {
 	ctx.fillStyle = '#dfdfdf';
 	ctx.fillRect(0,0, canvas.width, canvas.height);
 
+	//setting up input collection
 	var cmds = window.input.get_commands();
 	var cancel = false;
 	var pos = box.centre();
@@ -60,6 +74,7 @@ function cycle() {
 
 	console.log('box position: ', pos.x, pos.y, 'box angle: ', sum_angle);
 
+	//begin collision detection
 	var tri_norms = tri.get_normals();
 	var box_norms = box.get_normals();
 
@@ -282,4 +297,22 @@ function draw_line(p1, p2, colour) {
 
 	ctx.stroke();
 	ctx.restore();
+}
+
+function hex_generator(centre, length, offset) {
+	var unit_hex = [[1,0], [0.5, -Math.sqrt(3)/2], [-0.5, -Math.sqrt(3)/2], [-1,0], [-0.5,Math.sqrt(3)/2], [0.5, Math.sqrt(3)/2]];
+	var hex_points = [];
+	unit_hex.forEach(function (p) {
+		//modify each hex point by some value between -offset/2 to offset/2.
+		//eg: length = 40, offset = 16: x = p.x * 40 + (val between -8 and 8)
+		var x = Math.floor(p[0] * length + Math.round(Math.random() * offset - (offset/2)));
+		var y = Math.floor(p[1] * length + Math.round(Math.random() * offset - (offset/2)));
+		hex_points.push([x, y]);
+	})
+
+	//rotate the hex by a random value between 0-Math.PI
+	var hex = new shape(centre, hex_points);
+	hex.rotate(Math.random() * Math.PI);
+
+	return hex;
 }

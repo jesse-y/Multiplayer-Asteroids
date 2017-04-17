@@ -1,6 +1,6 @@
 #world settings
-WORLD_X = 640
-WORLD_Y = 480
+WORLD_X = 800
+WORLD_Y = 600
 
 #game settings
 GAME_SPEED = 60
@@ -23,10 +23,11 @@ CLIENT_RATE = 30
 obj_type_speed = {
 	'player': PLAYER_SPEED,
 	'bullet': BULLET_SPEED,
-	'block': 0
+	'asteroid': ENEMY_SPEED
 }
 
 obj_type_shape = {
 	'player': [[0,20],[14,-14],[-14,-14]],
 	'bullet': [[2,2],[2,-2],[-2,-2],[-2,2]],
+	'asteroid': [[50,50], [50,-50], [-50,-50], [-50,50]]
 }
