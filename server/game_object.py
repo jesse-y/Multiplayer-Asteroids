@@ -31,9 +31,12 @@ class GameObject:
 		return '{} {} {}'.format(self.pos, self.angle)
 
 	def get_speed(self):
+		#if this object was not assigned a speed explicitly
 		if self.speed is None:
+			#try to find a speed that matches the object's type
 			speed = settings.obj_type_speed.get(self.type)
 			if speed is None:
+				#otherwise return a default value
 				speed = default_speed
 			return speed
 		else:
