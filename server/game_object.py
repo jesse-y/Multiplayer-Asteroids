@@ -74,9 +74,6 @@ class GameObject:
 		self.pos = Position(int(x), int(y))
 		self.shape.update(Position(int(x), int(y)), self.angle)
 
-	def colliding(self, other):
-		pass
-
 	def build(self):
 		return {
 			'x':self.pos.x,
