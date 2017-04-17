@@ -21,6 +21,11 @@ class Shape:
 		rotation_matrix = np.array([[cosa, -sina],[sina, cosa]])
 		return (self.points.dot(rotation_matrix) + [self.centre.x, self.centre.y])
 
+	def rotate(self, angle):
+		cosa, sina = cos(angle), sin(angle)
+		rotation_matrix = np.array([[cosa, -sina], [sina, cosa]])
+		self.points.dot(rotation_matrix)
+
 	def edge_normals(self):
 		#grab the x axis of the points ndarray
 		x1 = self.points[:,0]

@@ -8,6 +8,7 @@ from collections import deque
 from player import Player
 from datatypes import MSG_JOIN, MSG_QUIT, MSG_ERROR, MSG_START, MSG_G_STATE
 from datatypes import Position
+from asteroid import Asteroid
 from id_manager import IdManager
 from game_object import GameObject
 from shape import Shape
@@ -24,6 +25,8 @@ class Game:
 		self.last_time = time.time()
 
 		self.players = {}
+		self.asteroids = {}
+		self.bullets = {}
 		self.entities = {}
 
 		self.events = {}
@@ -100,12 +103,9 @@ class Game:
 			entity.forward(dt)
 
 	def spawn_asteroid(self, ast_id=None):
-		oid = self.oidm.assign_id()
-
 		#choose asteroid type
 		if ast_id is None:
 			ast_id = random.randint(1,9);
-		ast_speed = 0
 
 		#choose spawn location
 		spawn_loc = random.sample([
@@ -115,16 +115,6 @@ class Game:
 			[random.randint(0, settings.WORLD_X), settings.WORLD_Y + 50]
 		], 1)
 
-		#speed values per asteroid type
-		if 1 <= ast_id <= 3:
-			#small asteroid
-			ast_speed = random.randint(125,175)
-		elif 4 <= ast_id <= 6:
-			#medium asteroid
-			ast_speed = random.randint(100,150)
-		elif 7 <= ast_id <= 9:
-			ast_speed = random.randint(100,125)
-
 		#choose angle to move towards - a point somewhere close to the centre of the map
 		target_loc = [
 			random.randint(math.floor(settings.WORLD_X*0.25), math.floor(settings.WORLD_X*0.75)),
@@ -133,12 +123,12 @@ class Game:
 
 		target_angle = math.atan2(target_loc[0]-spawn_loc[0][0], target_loc[1]-spawn_loc[0][1])
 
-		asteroid = GameObject(
+		oid = self.oidm.assign_id()
+		asteroid = Asteroid(
 			pos=Position(spawn_loc[0][0], spawn_loc[0][1]),
 			angle=target_angle,
-			speed=ast_speed,
 			oid=oid,
-			obj_type='asteroid_'+str(ast_id)
+			ast_id=ast_id
 		)
 
 		self.entities[oid] = asteroid
