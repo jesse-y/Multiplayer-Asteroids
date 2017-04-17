@@ -13,22 +13,24 @@ class Asteroid(GameObject):
 		super().__init__(
 			pos=pos,
 			angle=angle,
-			speed=self.get_speed(),
+			speed=self.get_speed(self.ast_id),
 			oid=oid,
 			obj_type='asteroid_'+str(ast_id)
 		)
 		self.shape.rotate(random.random() * math.pi)
 
-	def get_speed(self):
+	def get_speed(self, ast_id=None):
+		if ast_id is None:
+			ast_id = self.ast_id
 		ast_speed = 0
 		#speed values per asteroid type
-		if self.get_size(self.ast_id) == self.SMALL:
+		if self.get_size(ast_id) == self.SMALL:
 			#small asteroid
 			ast_speed = random.randint(150,200)
-		elif self.get_size(self.ast_id) == self.MEDIUM:
+		elif self.get_size(ast_id) == self.MEDIUM:
 			#medium asteroid
 			ast_speed = random.randint(125,175)
-		elif self.get_size(self.ast_id) == self.LARGE:
+		elif self.get_size(ast_id) == self.LARGE:
 			ast_speed = random.randint(100,150)
 		return ast_speed
 
@@ -56,13 +58,14 @@ class Asteroid(GameObject):
 			max_ast = 0
 			low, high = 0, 1
 
-		for i in range(max_ast):
+		num_dirs = 12
+		dirs = random.sample(range(num_dirs), max_ast)
+		for dir in dirs:
 			new_id = random.randint(low,high)
 			oid = oidm.assign_id()
 			ast = Asteroid(
 				pos=self.pos,
-				angle=random.random() * math.pi,
-				speed=self.get_speed(new_id),
+				angle=(dir / num_dirs) * math.pi,
 				oid=oid,
 				ast_id=new_id
 			)

@@ -119,8 +119,8 @@ class Game:
 
 		#choose angle to move towards - a point somewhere close to the centre of the map
 		target_loc = [
-			random.randint(math.floor(settings.WORLD_X*0.25), math.floor(settings.WORLD_X*0.75)),
-			random.randint(math.floor(settings.WORLD_Y*0.25), math.floor(settings.WORLD_Y*0.75))
+			random.randint(math.floor(settings.WORLD_X*0.33), math.floor(settings.WORLD_X*0.67)),
+			random.randint(math.floor(settings.WORLD_Y*0.33), math.floor(settings.WORLD_Y*0.67))
 		]
 		target_angle = math.atan2(target_loc[0]-spawn_loc[0][0], target_loc[1]-spawn_loc[0][1])
 
@@ -138,6 +138,7 @@ class Game:
 	def check_collisions(self):
 		to_remove = []
 
+		new_asts = {};
 		for bullet in self.bullets.values():
 			if self.out_of_bounds(bullet):
 				to_remove.append(bullet.oid)
@@ -146,10 +147,14 @@ class Game:
 				if bullet.shape.colliding(player.go.shape):
 					self.events[bullet.oid] = bullet.shape.world_points().tolist()
 					self.events[player.go.oid] = player.go.shape.world_points().tolist()
+
 			for asteroid in self.asteroids.values():
 				if bullet.shape.colliding(asteroid.shape):
 					self.events[bullet.oid] = bullet.shape.world_points().tolist()
 					self.events[asteroid.oid] = asteroid.shape.world_points().tolist()
+					to_remove.append(bullet.oid)
+					to_remove.append(asteroid.oid)
+					new_asts.update(asteroid.split(self.oidm))
 
 		for asteroid in self.asteroids.values():
 			if self.out_of_bounds(asteroid):
@@ -160,6 +165,7 @@ class Game:
 					self.events[asteroid.oid] = asteroid.shape.world_points().tolist()
 					self.events[player.go.oid] = player.go.shape.world_points().tolist()
 
+		self.asteroids.update(new_asts)
 		for key in to_remove:
 			if key in self.bullets:
 				self.oidm.release_id(key)
