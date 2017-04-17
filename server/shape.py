@@ -22,9 +22,10 @@ class Shape:
 		return (self.points.dot(rotation_matrix) + [self.centre.x, self.centre.y])
 
 	def rotate(self, angle):
+		#rotate base points about its origin
 		cosa, sina = cos(angle), sin(angle)
 		rotation_matrix = np.array([[cosa, -sina], [sina, cosa]])
-		self.points.dot(rotation_matrix)
+		self.points = self.points.dot(rotation_matrix)
 
 	def edge_normals(self):
 		#grab the x axis of the points ndarray
