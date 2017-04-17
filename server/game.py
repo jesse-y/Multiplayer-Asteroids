@@ -99,8 +99,13 @@ class Game:
 		for entity in self.entities.values():
 			entity.forward(dt)
 
-	def spawn_asteroid(self):
+	def spawn_asteroid(self, ast_id=None):
 		oid = self.oidm.assign_id()
+
+		#choose asteroid type
+		if ast_id is None:
+			ast_id = random.randint(1,9);
+		ast_speed = 0
 
 		#choose spawn location
 		spawn_loc = random.sample([
@@ -109,6 +114,16 @@ class Game:
 			[random.randint(0, settings.WORLD_X), -50],
 			[random.randint(0, settings.WORLD_X), settings.WORLD_Y + 50]
 		], 1)
+
+		#speed values per asteroid type
+		if 1 <= ast_id <= 3:
+			#small asteroid
+			ast_speed = random.randint(125,175)
+		elif 4 <= ast_id <= 6:
+			#medium asteroid
+			ast_speed = random.randint(100,150)
+		elif 7 <= ast_id <= 9:
+			ast_speed = random.randint(100,125)
 
 		#choose angle to move towards - a point somewhere close to the centre of the map
 		target_loc = [
@@ -121,9 +136,9 @@ class Game:
 		asteroid = GameObject(
 			pos=Position(spawn_loc[0][0], spawn_loc[0][1]),
 			angle=target_angle,
-			speed=random.randint(100,200),
+			speed=ast_speed,
 			oid=oid,
-			obj_type='asteroid'
+			obj_type='asteroid_'+str(ast_id)
 		)
 
 		self.entities[oid] = asteroid
