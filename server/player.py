@@ -42,7 +42,7 @@ class Player:
 		return hash(self.user)
 
 	def __str__(self):
-		return 'p{}:{} =>{}, {}'.format(self.user.uid, self.user.username, self.go.pos, self.go.vec)
+		return 'p{}:{}'.format(self.user.uid, self.user.username)
 
 	def input(self, inputs):
 		#inputs is an array of 1 item as an artifact from the way javascript's JSON.stringify handles input

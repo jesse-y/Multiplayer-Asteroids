@@ -109,7 +109,7 @@ class Game:
 		if ast_id is None:
 			ast_id = random.randint(1,9);
 
-		#choose spawn location
+		#choose spawn location along the outside edges of the map
 		spawn_loc = random.sample([
 			[-50, random.randint(0, settings.WORLD_Y)],
 			[settings.WORLD_X + 50, random.randint(0, settings.WORLD_Y)],
@@ -137,17 +137,29 @@ class Game:
 
 	def check_collisions(self):
 		to_remove = []
-		for values in [self.bullets.values(), self.asteroids.values()]:
-			for entity in values:
-				if (entity.pos.x < -50                   or \
-				   entity.pos.x > settings.WORLD_X + 50 or \
-				   entity.pos.y < -50                   or \
-				   entity.pos.y > settings.WORLD_Y + 50) and entity.dist_travelled > 100:
-				   to_remove.append(entity.oid)
-				for player in self.players.values():
-					if entity.shape.colliding(player.go.shape):
-						self.events[entity.oid] = entity.shape.world_points().tolist()
-						self.events[player.go.oid] = player.go.shape.world_points().tolist()
+
+		for bullet in self.bullets.values():
+			if self.out_of_bounds(bullet):
+				to_remove.append(bullet.oid)
+
+			for player in self.players.values():
+				if bullet.shape.colliding(player.go.shape):
+					self.events[bullet.oid] = bullet.shape.world_points().tolist()
+					self.events[player.go.oid] = player.go.shape.world_points().tolist()
+			for asteroid in self.asteroids.values():
+				if bullet.shape.colliding(asteroid.shape):
+					self.events[bullet.oid] = bullet.shape.world_points().tolist()
+					self.events[asteroid.oid] = asteroid.shape.world_points().tolist()
+
+		for asteroid in self.asteroids.values():
+			if self.out_of_bounds(asteroid):
+				to_remove.append(asteroid.oid)
+
+			for player in self.players.values():
+				if asteroid.shape.colliding(player.go.shape):
+					self.events[asteroid.oid] = asteroid.shape.world_points().tolist()
+					self.events[player.go.oid] = player.go.shape.world_points().tolist()
+
 		for key in to_remove:
 			if key in self.bullets:
 				self.oidm.release_id(key)
@@ -187,6 +199,15 @@ class Game:
 		if self.send_ticker % self.send_rate == 0:
 			msg = self.build_state()
 			self.notify_all([MSG_G_STATE, {'timestamp':self.game_time, 'state':msg}])
+
+	def out_of_bounds(self, entity):
+		if (entity.pos.x < -50                   or \
+		   entity.pos.x > settings.WORLD_X + 50 or \
+		   entity.pos.y < -50                   or \
+		   entity.pos.y > settings.WORLD_Y + 50) and entity.dist_travelled > 100:
+			return True
+		else:
+			return False
 
 	def notify_single(self, player, msg):
 		success = False

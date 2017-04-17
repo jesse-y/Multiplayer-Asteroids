@@ -65,8 +65,9 @@ class GameObject:
 		if angle is None: angle = self.angle
 		speed = self.get_speed()
 		x, y = self.pos.x, self.pos.y
-		dx = dt * speed * sin(angle)
-		dy = dt * speed * cos(angle)
+		#rounding errors will cause the bullet stream to desync with absolute mouse position
+		dx = round(dt * speed * sin(angle))
+		dy = round(dt * speed * cos(angle))
 		x += dx
 		y += dy
 		self.dist_travelled += sqrt(dx**2 + dy**2)

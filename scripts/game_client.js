@@ -197,6 +197,16 @@ function game_client() {
 		return result;
 	}
 
+	function draw_line(p1, p2, colour) {
+		ctx.save();
+		ctx.strokeStyle = colour;
+		ctx.beginPath();
+		ctx.moveTo(p1[0], p1[1]);
+		ctx.lineTo(p2[0], p2[1]);
+		ctx.stroke();
+		ctx.restore();
+	}
+
 	this.reset_screen = function() {
 		paused = true;
 
