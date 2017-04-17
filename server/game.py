@@ -27,7 +27,6 @@ class Game:
 		self.players = {}
 		self.asteroids = {}
 		self.bullets = {}
-		self.entities = {}
 
 		self.events = {}
 
@@ -97,10 +96,13 @@ class Game:
 	def update_entities(self, dt):
 		for player in self.players.values():
 			player.go.move(dt=1./settings.CLIENT_RATE)
-			self.entities.update(player.spawn_entities(self.oidm))
+			self.bullets.update(player.spawn_entities(self.oidm))
 
-		for entity in self.entities.values():
-			entity.forward(dt)
+		for bullet in self.bullets.values():
+			bullet.forward(dt)
+
+		for asteroid in self.asteroids.values():
+			asteroid.forward(dt)
 
 	def spawn_asteroid(self, ast_id=None):
 		#choose asteroid type
@@ -120,9 +122,9 @@ class Game:
 			random.randint(math.floor(settings.WORLD_X*0.25), math.floor(settings.WORLD_X*0.75)),
 			random.randint(math.floor(settings.WORLD_Y*0.25), math.floor(settings.WORLD_Y*0.75))
 		]
-
 		target_angle = math.atan2(target_loc[0]-spawn_loc[0][0], target_loc[1]-spawn_loc[0][1])
 
+		#create asteroid object
 		oid = self.oidm.assign_id()
 		asteroid = Asteroid(
 			pos=Position(spawn_loc[0][0], spawn_loc[0][1]),
@@ -131,31 +133,38 @@ class Game:
 			ast_id=ast_id
 		)
 
-		self.entities[oid] = asteroid
+		self.asteroids[oid] = asteroid
 
 	def check_collisions(self):
 		to_remove = []
-		for entity in self.entities.values():
-			if (entity.pos.x < -50                   or \
-			   entity.pos.x > settings.WORLD_X + 50 or \
-			   entity.pos.y < -50                   or \
-			   entity.pos.y > settings.WORLD_Y + 50) and entity.dist_travelled > 100:
-			   to_remove.append(entity.oid)
-			for player in self.players.values():
-				if entity.shape.colliding(player.go.shape):
-					self.events[entity.oid] = entity.shape.world_points().tolist()
-					self.events[player.go.oid] = player.go.shape.world_points().tolist()
+		for values in [self.bullets.values(), self.asteroids.values()]:
+			for entity in values:
+				if (entity.pos.x < -50                   or \
+				   entity.pos.x > settings.WORLD_X + 50 or \
+				   entity.pos.y < -50                   or \
+				   entity.pos.y > settings.WORLD_Y + 50) and entity.dist_travelled > 100:
+				   to_remove.append(entity.oid)
+				for player in self.players.values():
+					if entity.shape.colliding(player.go.shape):
+						self.events[entity.oid] = entity.shape.world_points().tolist()
+						self.events[player.go.oid] = player.go.shape.world_points().tolist()
 		for key in to_remove:
-			self.oidm.release_id(key)
-			del self.entities[key]
+			if key in self.bullets:
+				self.oidm.release_id(key)
+				del self.bullets[key]
+			elif key in self.asteroids:
+				self.oidm.release_id(key)
+				del self.asteroids[key]
 
 	def build_state(self):
 		msg = {}
 		msg['entities'] = {}
 		for player in self.players.values():
 			msg['entities'][player.go.oid] = player.build()
-		for entity in self.entities.values():
-			msg['entities'][entity.oid] = entity.build()
+		for bullet in self.bullets.values():
+			msg['entities'][bullet.oid] = bullet.build()
+		for asteroid in self.asteroids.values():
+			msg['entities'][asteroid.oid] = asteroid.build()
 		msg['events'] = self.events
 		self.events = {}
 		return msg
