@@ -142,6 +142,7 @@ class Game:
 		for bullet in self.bullets.values():
 			if self.out_of_bounds(bullet):
 				to_remove.append(bullet.oid)
+				continue
 
 			for player in self.players.values():
 				if bullet.shape.colliding(player.go.shape):
@@ -159,6 +160,7 @@ class Game:
 		for asteroid in self.asteroids.values():
 			if self.out_of_bounds(asteroid):
 				to_remove.append(asteroid.oid)
+				continue
 
 			for player in self.players.values():
 				if asteroid.shape.colliding(player.go.shape):
