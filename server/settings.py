@@ -5,7 +5,7 @@ WORLD_Y = 600
 #game settings
 GAME_SPEED = 60
 SEND_RATE = 20
-MAX_PLAYERS = 1
+MAX_PLAYERS = 2
 
 #game object settings
 PLAYER_SPEED = 250

@@ -97,13 +97,20 @@ function game_state() {
 			player.a = sp.a;
 		}
 
-		if (to && to.state.entities.hasOwnProperty(pid) && to.state.entities[pid].alive) {
+		if (snapshot.state.entities.hasOwnProperty(pid) && snapshot.state.entities[pid].alive) {
+			if (alive == false) {
+				//we have just respawned, reset player position
+				var p = snapshot.state.entities[pid];
+				player.x = p.x;
+				player.y = p.y;
+				player.a = p.a;
+			}
 			alive = true;
 		} else {
 			alive = false;
 		}
 
-		if (past_moves.length != 0) {
+		if (past_moves.length != 0 && alive) {
 			var last_id = snapshot.state.entities[pid].last_id;
 			var curr_id = past_moves[past_moves.length - 1].cmd_id;
 			var index = past_moves.length - (curr_id - last_id) - 1;
@@ -178,10 +185,12 @@ function game_state() {
 			}
 		}
 
-		//add predicted player to the frame object
-		var predicted_player = clone(player);
-		predicted_player.pid = from.state.entities[pid].pid;
-		interp.predicted_player = predicted_player;
+		if (alive && from.state.entities.hasOwnProperty(pid)) {
+			//add predicted player to the frame object
+			var predicted_player = clone(player);
+			predicted_player.pid = from.state.entities[pid].pid;
+			interp.predicted_player = predicted_player;
+		}
 
 		//TO DO: check collisions and update animations
 

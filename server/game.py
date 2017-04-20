@@ -115,11 +115,13 @@ class Game:
 				continue
 
 			for player in self.players.values():
+				if not player.alive: continue
 				if bullet.shape.colliding(player.go.shape):
 					to_remove.append(bullet.oid)
 					player.hit()
 					if player.destroyed():
 						self.events[player.go.oid] = { 'action':'dead' }
+						player.kill()
 					elif player.no_shields():
 						self.events[player.go.oid] = { 'action':'noshield' }
 
@@ -138,6 +140,7 @@ class Game:
 				continue
 
 			for player in self.players.values():
+				if not player.alive: continue
 				if asteroid.shape.colliding(player.go.shape):
 					asteroid.hit(dmg=2)
 					player.kill()

@@ -24,11 +24,13 @@ function game_client() {
 	var ctx = canvas.getContext('2d');
 
 	//default ship colours
-	var colours = ['#2176ff', '#379e3a', '#efe639', '#f7411d', '#c130e5'];
+	var colours = ['#2176ff', '#379e3a', '#efe639', '#f7411d', '#cc00cc'];
+	var shield_cols = ['#66a1ff', '#8ed790', '#f3eb59', '#fa836b', '#ff33ff'];
 
 	//default object shapes
 	var shapes = {
 		player: [[0,20], [14,-14], [-14,-14]],
+		shield: [[0,22], [15,-15], [-15,-15]],
 		bullet: [[2,2], [2,-2], [-2,-2], [-2,2]],
 		star: [[1,1], [1,-1], [-1,-1], [-1,1]],
 		asteroid_1: [[0,10], [12,5], [5,-7], [-2,-9], [-6,4]],
@@ -150,11 +152,16 @@ function game_client() {
 		*/
 	}
 
-	function render_shape(state, points, colour, fill) {
+	function render_shape(state, points, colour, fill, thickness) {
 		ctx.save();
 
 		ctx.strokeStyle = colour;
 		ctx.fillStyle = colour;
+		if (thickness == undefined) {
+			thickness = 1;
+		}
+		ctx.lineWidth = thickness;
+
 
 		ctx.translate(state.x, state.y);
 		ctx.rotate(-state.a);
