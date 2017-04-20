@@ -106,18 +106,18 @@ class Game:
 			asteroid.forward(dt)
 
 	def check_collisions(self):
-		to_remove = []
+		to_remove = {}
 
 		new_asts = {};
 		for bullet in self.bullets.values():
 			if self.out_of_bounds(bullet):
-				to_remove.append(bullet.oid)
+				to_remove[bullet.oid] = True
 				continue
 
 			for player in self.players.values():
 				if not player.alive: continue
 				if bullet.shape.colliding(player.go.shape):
-					to_remove.append(bullet.oid)
+					to_remove[bullet.oid] = True
 					player.hit()
 					if player.destroyed():
 						self.events[player.go.oid] = { 'action':'dead' }
@@ -126,17 +126,18 @@ class Game:
 						self.events[player.go.oid] = { 'action':'noshield' }
 
 			for asteroid in self.asteroids.values():
+				if asteroid.oid in to_remove: continue
 				if bullet.shape.colliding(asteroid.shape):
 					self.events[asteroid.oid] = { 'action':'hit' }
 					asteroid.hit()
-					to_remove.append(bullet.oid)
+					to_remove[bullet.oid] = True
 				if asteroid.destroyed():
-					to_remove.append(asteroid.oid)
+					to_remove[asteroid.oid] = True
 					new_asts.update(asteroid.split(self.oidm))
 
 		for asteroid in self.asteroids.values():
 			if self.out_of_bounds(asteroid):
-				to_remove.append(asteroid.oid)
+				to_remove[asteroid.oid] = True
 				continue
 
 			for player in self.players.values():
@@ -145,12 +146,12 @@ class Game:
 					asteroid.hit(dmg=2)
 					player.kill()
 					if asteroid.destroyed():
-						to_remove.append(asteroid.oid)
+						to_remove[asteroid.oid] = True
 						new_asts.update(asteroid.split(self.oidm))
 
 		self.asteroids.update(new_asts)
 
-		for key in to_remove:
+		for key in to_remove.keys():
 			if key in self.bullets:
 				self.oidm.release_id(key)
 				del self.bullets[key]

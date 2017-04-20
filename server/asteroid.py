@@ -9,6 +9,12 @@ class Asteroid(GameObject):
 	MEDIUM = 1
 	LARGE = 2
 
+	size_names = {
+		SMALL:'small',
+		MEDIUM:'medium',
+		LARGE:'large'
+	}
+
 	def __init__(self, pos, angle, oid, ast_id):
 		self.ast_id = ast_id
 		super().__init__(
@@ -19,6 +25,9 @@ class Asteroid(GameObject):
 			obj_type='asteroid_'+str(ast_id)
 		)
 		self.hp = settings.ast_max_hp.get(self.ast_id)
+
+	def __str__(self):
+		return 'asteroid_{}_type_{}_oid_{}_hp={}'.format(self.size_names.get(self.get_size(self.ast_id)), self.ast_id, self.oid, self.hp)
 
 	def get_speed(self, ast_id=None):
 		if ast_id is None:

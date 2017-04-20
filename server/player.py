@@ -119,9 +119,8 @@ class Player:
 		if self.shields is None or self.shields < settings.MAX_SHIELDS:
 			curr_time = time.time()
 			if curr_time - self.last_hit > settings.REGEN_DELAY:
-				self.regen_shield()
-			elif curr_time - self.last_regen > settings.REGEN_SPEED:
-				self.regen_shield()
+				if curr_time - self.last_regen > settings.REGEN_SPEED:
+					self.regen_shield()
 
 	def ready_to_spawn(self):
 		if time.time() - self.death_time > settings.RESPAWN_DELAY:
@@ -133,6 +132,7 @@ class Player:
 		self.alive = True
 		self.go.pos = Position(pos[0], pos[1])
 		self.go.angle = angle
+		self.shields = settings.MAX_SHIELDS
 		return self.go
 
 	def kill(self):
