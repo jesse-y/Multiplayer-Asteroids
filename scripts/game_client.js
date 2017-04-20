@@ -113,7 +113,11 @@ function game_client() {
 				render_shape(entity, shapes.bullet, '#ffffff', true);
 			}
 			if (entity.type.match(/^asteroid_[1-9]$/)) {
-				render_shape(entity, shapes[entity.type], '#ffffff', false);
+				var ast_col = '#ffffff';
+				if (frame.state.hasOwnProperty('events') && frame.state.events.hasOwnProperty(entity.oid)) {
+					ast_col = '#ff0000';
+				}
+				render_shape(entity, shapes[entity.type], ast_col, false);
 			}
 		}
 
@@ -122,11 +126,13 @@ function game_client() {
 		render_shape(pp, shapes.player, colours[pp.pid-1], false);
 
 		//render events
+		/*
 		if (frame.state.hasOwnProperty('events')) {
 			for (var key in frame.state.events) {
 				render_points(frame.state.events[key], '#ff0000');
 			}
 		}
+		*/
 	}
 
 	function render_shape(state, points, colour, fill) {

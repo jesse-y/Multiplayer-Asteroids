@@ -1,5 +1,6 @@
 import random
 import math
+import settings
 from game_object import GameObject
 
 class Asteroid(GameObject):
@@ -17,21 +18,20 @@ class Asteroid(GameObject):
 			oid=oid,
 			obj_type='asteroid_'+str(ast_id)
 		)
-		self.shape.rotate(random.random() * math.pi)
+		self.hp = settings.ast_max_hp.get(self.ast_id)
 
 	def get_speed(self, ast_id=None):
 		if ast_id is None:
 			ast_id = self.ast_id
 		ast_speed = 0
-		#speed values per asteroid type
-		if self.get_size(ast_id) == self.SMALL:
-			#small asteroid
-			ast_speed = random.randint(150,200)
-		elif self.get_size(ast_id) == self.MEDIUM:
-			#medium asteroid
-			ast_speed = random.randint(125,175)
-		elif self.get_size(ast_id) == self.LARGE:
-			ast_speed = random.randint(100,150)
+
+		min_speed = settings.ast_speed_min.get(ast_id)
+		max_speed = settings.ast_speed_max.get(ast_id)
+
+		if min_speed is None or max_speed is None: ast_speed = 100
+
+		ast_speed = random.randint(min_speed, max_speed)
+
 		return ast_speed
 
 	def get_size(self, ast_id):
@@ -43,6 +43,16 @@ class Asteroid(GameObject):
 		elif 7 <= ast_id <= 9:
 			size = self.LARGE
 		return size
+
+	def hit(self):
+		if self.hp is not None:
+			self.hp -= 1
+
+	def destroyed(self):
+		if self.hp is None or self.hp < 1:
+			return True
+		else:
+			return False
 
 	def split(self, oidm):
 		objects = {}

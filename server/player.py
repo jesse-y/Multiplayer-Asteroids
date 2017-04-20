@@ -37,6 +37,10 @@ class Player:
 		self.received_ids = 0
 		#player status info
 		self.last_shot = time.time()
+		self.last_hit = time.time()
+		self.last_regen = time.time()
+		#object stats
+		self.shields = settings.MAX_SHIELDS
 
 	def __hash__(self):
 		return hash(self.user)
@@ -72,7 +76,7 @@ class Player:
 
 	def spawn_entities(self, oidm):
 		entities = {}
-		if self.clicked and (time.time() - self.last_shot) > 0.2:
+		if self.clicked and (time.time() - self.last_shot) > 1/settings.BULLETS_PER_SECOND:
 			oid = oidm.assign_id()
 			
 			bx = sin(self.go.angle) * 20 + self.go.pos.x
@@ -87,6 +91,35 @@ class Player:
 			entities[oid] = bullet
 			self.last_shot = time.time()
 		return entities
+
+	def hit(self):
+		if self.shields is not None:
+			self.shields -= 1
+			self.last_hit = time.time()
+
+	def no_shields(self):
+		if self.shields is not None and self.shields < 1:
+			return True
+		else:
+			return False
+
+	def destroyed(self):
+		if self.shields < 0:
+			return True
+		else:
+			return False
+
+	def restore_shields(self):
+		if self.shields is None or self.shields < settings.MAX_SHIELDS:
+			curr_time = time.time()
+			if curr_time - self.last_hit > settings.REGEN_DELAY:
+				self.regen_shield()
+			elif curr_time - self.last_regen > settings.REGEN_SPEED:
+				self.regen_shield()
+
+	def regen_shield(self):
+		self.last_regen = time.time()
+		self.shields += 1
 
 	def build(self):
 		entity = self.go.build()

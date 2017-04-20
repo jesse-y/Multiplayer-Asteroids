@@ -97,6 +97,7 @@ class Game:
 		for player in self.players.values():
 			player.go.move(dt=1./settings.CLIENT_RATE)
 			self.bullets.update(player.spawn_entities(self.oidm))
+			player.restore_shields()
 
 		for bullet in self.bullets.values():
 			bullet.forward(dt)
@@ -146,14 +147,19 @@ class Game:
 
 			for player in self.players.values():
 				if bullet.shape.colliding(player.go.shape):
-					self.events[bullet.oid] = bullet.shape.world_points().tolist()
-					self.events[player.go.oid] = player.go.shape.world_points().tolist()
+					to_remove.append(bullet.oid)
+					player.hit()
+					if player.destroyed():
+						self.events[player.go.oid] = { 'action':'dead' }
+					elif player.no_shields():
+						self.events[player.go.oid] = { 'action':'noshield' }
 
 			for asteroid in self.asteroids.values():
 				if bullet.shape.colliding(asteroid.shape):
-					self.events[bullet.oid] = bullet.shape.world_points().tolist()
-					self.events[asteroid.oid] = asteroid.shape.world_points().tolist()
+					self.events[asteroid.oid] = { 'action':'hit' }
+					asteroid.hit()
 					to_remove.append(bullet.oid)
+				if asteroid.destroyed():
 					to_remove.append(asteroid.oid)
 					new_asts.update(asteroid.split(self.oidm))
 
@@ -168,6 +174,7 @@ class Game:
 					self.events[player.go.oid] = player.go.shape.world_points().tolist()
 
 		self.asteroids.update(new_asts)
+
 		for key in to_remove:
 			if key in self.bullets:
 				self.oidm.release_id(key)
