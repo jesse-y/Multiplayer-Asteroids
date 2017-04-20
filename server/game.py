@@ -105,37 +105,6 @@ class Game:
 		for asteroid in self.asteroids.values():
 			asteroid.forward(dt)
 
-	def spawn_asteroid(self, ast_id=None):
-		#choose asteroid type
-		if ast_id is None:
-			ast_id = random.randint(1,9);
-
-		#choose spawn location along the outside edges of the map
-		spawn_loc = random.sample([
-			[-50, random.randint(0, settings.WORLD_Y)],
-			[settings.WORLD_X + 50, random.randint(0, settings.WORLD_Y)],
-			[random.randint(0, settings.WORLD_X), -50],
-			[random.randint(0, settings.WORLD_X), settings.WORLD_Y + 50]
-		], 1)
-
-		#choose angle to move towards - a point somewhere close to the centre of the map
-		target_loc = [
-			random.randint(math.floor(settings.WORLD_X*0.33), math.floor(settings.WORLD_X*0.67)),
-			random.randint(math.floor(settings.WORLD_Y*0.33), math.floor(settings.WORLD_Y*0.67))
-		]
-		target_angle = math.atan2(target_loc[0]-spawn_loc[0][0], target_loc[1]-spawn_loc[0][1])
-
-		#create asteroid object
-		oid = self.oidm.assign_id()
-		asteroid = Asteroid(
-			pos=Position(spawn_loc[0][0], spawn_loc[0][1]),
-			angle=target_angle,
-			oid=oid,
-			ast_id=ast_id
-		)
-
-		self.asteroids[oid] = asteroid
-
 	def check_collisions(self):
 		to_remove = []
 
@@ -170,8 +139,11 @@ class Game:
 
 			for player in self.players.values():
 				if asteroid.shape.colliding(player.go.shape):
-					self.events[asteroid.oid] = asteroid.shape.world_points().tolist()
-					self.events[player.go.oid] = player.go.shape.world_points().tolist()
+					asteroid.hit(dmg=2)
+					player.kill()
+					if asteroid.destroyed():
+						to_remove.append(asteroid.oid)
+						new_asts.update(asteroid.split(self.oidm))
 
 		self.asteroids.update(new_asts)
 
@@ -183,10 +155,56 @@ class Game:
 				self.oidm.release_id(key)
 				del self.asteroids[key]
 
+	def spawn_asteroid(self, ast_id=None):
+		#choose asteroid type
+		if ast_id is None:
+			ast_id = random.randint(1,9);
+
+		#choose spawn location along the outside edges of the map
+		spawn_loc = random.sample([
+			[-50, random.randint(0, settings.WORLD_Y)],
+			[settings.WORLD_X + 50, random.randint(0, settings.WORLD_Y)],
+			[random.randint(0, settings.WORLD_X), -50],
+			[random.randint(0, settings.WORLD_X), settings.WORLD_Y + 50]
+		], 1)
+
+		#choose angle to move towards - a point somewhere close to the centre of the map
+		target_loc = [
+			random.randint(math.floor(settings.WORLD_X*0.33), math.floor(settings.WORLD_X*0.67)),
+			random.randint(math.floor(settings.WORLD_Y*0.33), math.floor(settings.WORLD_Y*0.67))
+		]
+		target_angle = math.atan2(target_loc[0]-spawn_loc[0][0], target_loc[1]-spawn_loc[0][1])
+
+		#create asteroid object
+		oid = self.oidm.assign_id()
+		asteroid = Asteroid(
+			pos=Position(spawn_loc[0][0], spawn_loc[0][1]),
+			angle=target_angle,
+			oid=oid,
+			ast_id=ast_id
+		)
+
+		self.asteroids[oid] = asteroid
+
+	def spawn_player(self):
+		for player in self.players.values():
+			if player.alive: continue
+			if player.ready_to_spawn():
+				spawnX = random.randint(round(settings.WORLD_X*0.25), round(settings.WORLD_X*0.75))
+				spawnY = random.randint(round(settings.WORLD_Y*0.25), round(settings.WORLD_Y*0.75))
+
+				centreX = round(settings.WORLD_X/2)
+				centreY = round(settings.WORLD_Y/2)
+
+				angle = math.atan2((centreX-spawnX),(centreY-spawnY))
+
+				player.spawn([spawnX, spawnY], angle)
+
 	def build_state(self):
 		msg = {}
 		msg['entities'] = {}
 		for player in self.players.values():
+			if not player.alive: continue
 			msg['entities'][player.go.oid] = player.build()
 		for bullet in self.bullets.values():
 			msg['entities'][bullet.oid] = bullet.build()
@@ -208,6 +226,9 @@ class Game:
 
 		if random.random() < 1-.995:
 			self.spawn_asteroid()
+
+		for player in self.players.values():
+			self.spawn_player()
 
 		self.last_time = time.time()
 		self.send_ticker += 1

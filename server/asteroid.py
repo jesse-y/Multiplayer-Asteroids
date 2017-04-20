@@ -44,9 +44,9 @@ class Asteroid(GameObject):
 			size = self.LARGE
 		return size
 
-	def hit(self):
+	def hit(self, dmg=1):
 		if self.hp is not None:
-			self.hp -= 1
+			self.hp -= dmg
 
 	def destroyed(self):
 		if self.hp is None or self.hp < 1:

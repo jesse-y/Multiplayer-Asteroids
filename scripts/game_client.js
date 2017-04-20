@@ -106,7 +106,7 @@ function game_client() {
 		//render entities
 		for (var key in frame.state.entities) {
 			var entity = frame.state.entities[key];
-			if (entity.type == 'player' && entity.pid != gs.pid()) {
+			if (entity.type == 'player' && entity.oid != gs.pid()) {
 				render_shape(entity, shapes.player, colours[entity.pid-1], false);
 			}
 			if (entity.type == 'bullet') {
@@ -122,8 +122,23 @@ function game_client() {
 		}
 
 		//render predicted player
-		var pp = frame.predicted_player;
-		render_shape(pp, shapes.player, colours[pp.pid-1], false);
+		if (frame.hasOwnProperty('predicted_player')) {
+			var pp = frame.predicted_player;
+			render_shape(pp, shapes.player, colours[pp.pid-1], false);
+		}
+
+		//render hud
+		var shields;
+		if (frame.state.entities.hasOwnProperty(gs.pid())) {
+			shields = frame.state.entities[gs.pid()].shields;
+		} else {
+			shields = 0;
+		}
+		var offset = 20;
+		for (var i = 0; i < 3; i++) {
+			if (i+1 <= shields) draw_circle([20+(i*offset),20], 7, '#2176ff', true);
+			else				draw_circle([20+(i*offset),20], 7, '#2176ff', false);
+		}
 
 		//render events
 		/*
@@ -211,6 +226,22 @@ function game_client() {
 		ctx.lineTo(p2[0], p2[1]);
 		ctx.stroke();
 		ctx.restore();
+	}
+
+	function draw_circle(centre, radius, colour, fill) {
+		ctx.save();
+		ctx.fillStyle = colour;
+		ctx.strokeStyle = colour
+		ctx.translate(centre[0], centre[1]);
+		ctx.beginPath();
+		ctx.arc(0,0,radius,0,2*Math.PI);
+		if (fill) {
+			ctx.fill();
+		} else {
+			ctx.stroke();
+		}
+		ctx.restore();
+
 	}
 
 	this.reset_screen = function() {

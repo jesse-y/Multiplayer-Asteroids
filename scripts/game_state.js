@@ -9,6 +9,7 @@ function game_state() {
 	var game_time;
 	var pid;
 	var player;
+	var alive;
 
 	//world snapshots
 	var from;
@@ -96,6 +97,12 @@ function game_state() {
 			player.a = sp.a;
 		}
 
+		if (to && to.state.entities.hasOwnProperty(pid) && to.state.entities[pid].alive) {
+			alive = true;
+		} else {
+			alive = false;
+		}
+
 		if (past_moves.length != 0) {
 			var last_id = snapshot.state.entities[pid].last_id;
 			var curr_id = past_moves[past_moves.length - 1].cmd_id;
@@ -103,7 +110,7 @@ function game_state() {
 		}
 
 		//reconcile last input only if the last id we received exists in our past_moves array		
-		if (index >= 0 && index < past_moves.length) {
+		if (index >= 0 && index < past_moves.length && alive) {
 			window.print_msg('reconcile', 'unacked moves: '+past_moves.length);
 
 			var client_state = past_moves[index].state;

@@ -36,9 +36,11 @@ class Player:
 		self.last_id = -1
 		self.received_ids = 0
 		#player status info
+		self.alive = True
 		self.last_shot = time.time()
 		self.last_hit = time.time()
 		self.last_regen = time.time()
+		self.death_time = time.time()
 		#object stats
 		self.shields = settings.MAX_SHIELDS
 
@@ -49,6 +51,8 @@ class Player:
 		return 'p{}:{}'.format(self.user.uid, self.user.username)
 
 	def input(self, inputs):
+		if not self.alive:
+			return
 		#inputs is an array of 1 item as an artifact from the way javascript's JSON.stringify handles input
 		self.last_id = inputs[0]['cmd_id']
 		#currently unused but kept for future use
@@ -96,6 +100,8 @@ class Player:
 		if self.shields is not None:
 			self.shields -= 1
 			self.last_hit = time.time()
+			if self.shields < 0:
+				self.kill()
 
 	def no_shields(self):
 		if self.shields is not None and self.shields < 1:
@@ -117,6 +123,22 @@ class Player:
 			elif curr_time - self.last_regen > settings.REGEN_SPEED:
 				self.regen_shield()
 
+	def ready_to_spawn(self):
+		if time.time() - self.death_time > settings.RESPAWN_DELAY:
+			return True
+		else:
+			return False
+
+	def spawn(self, pos, angle):
+		self.alive = True
+		self.go.pos = Position(pos[0], pos[1])
+		self.go.angle = angle
+		return self.go
+
+	def kill(self):
+		self.alive = False;
+		self.death_time = time.time()
+
 	def regen_shield(self):
 		self.last_regen = time.time()
 		self.shields += 1
@@ -125,6 +147,8 @@ class Player:
 		entity = self.go.build()
 		entity.update({
 			'pid':self.pid,
-			'last_id':self.last_id
+			'last_id':self.last_id,
+			'shields':self.shields,
+			'alive':self.alive
 		})
 		return entity
