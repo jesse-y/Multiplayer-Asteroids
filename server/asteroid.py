@@ -27,7 +27,8 @@ class Asteroid(GameObject):
 		self.hp = settings.ast_max_hp.get(self.ast_id)
 
 	def __str__(self):
-		return 'asteroid_{}_type_{}_oid_{}_hp={}'.format(self.size_names.get(self.get_size(self.ast_id)), self.ast_id, self.oid, self.hp)
+		return 'asteroid_{}_type_{}_oid_{}_hp={}'.format(
+			self.size_names.get(self.get_size(self.ast_id)), self.ast_id, self.oid, self.hp)
 
 	def get_speed(self, ast_id=None):
 		if ast_id is None:

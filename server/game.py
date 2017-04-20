@@ -143,6 +143,7 @@ class Game:
 			for player in self.players.values():
 				if not player.alive: continue
 				if asteroid.shape.colliding(player.go.shape):
+					self.events[asteroid.oid] = { 'action':'hit' }
 					asteroid.hit(dmg=2)
 					player.kill()
 					if asteroid.destroyed():

@@ -52,6 +52,7 @@ class Player:
 
 	def input(self, inputs):
 		if not self.alive:
+			self.clicked = False
 			return
 		#inputs is an array of 1 item as an artifact from the way javascript's JSON.stringify handles input
 		self.last_id = inputs[0]['cmd_id']
