@@ -69,15 +69,24 @@ class Game:
 			self.oidm.release_id(quitter.go.oid)
 			self.pidm.release_id(quitter.pid)
 		else:
+			print('{}>failed to remove player {}'.format(self, quitter))
 			return
 
 		if len(self.players) < 1:
 			self.finished = True
 			return
+		else:
+			print('{}>needs {} more players'.format(self, settings.MAX_PLAYERS-len(self.players)))
 
 		print('{}>disconnect_player: notify all players that {} disconnected'.format(self, quitter))
 		for ingame_player in self.players.values():
 			self.notify_single(ingame_player, [MSG_QUIT, quitter.user.uid])
+
+	def need_players(self):
+		if settings.MAX_PLAYERS - len(self.players) > 0:
+			return True
+		else:
+			return False
 
 	def start(self):
 		self.create_world()

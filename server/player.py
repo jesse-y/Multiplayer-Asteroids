@@ -111,17 +111,21 @@ class Player:
 			return False
 
 	def destroyed(self):
-		if self.shields < 0:
+		if not self.alive:
 			return True
 		else:
 			return False
 
 	def restore_shields(self):
+		#regeneration rules: 
+		#3 second delay before shields recharge.
+		#recharge rate is 1 shield per second
+		#getting hit while recharging resets the recharge delay
 		if self.shields is None or self.shields < settings.MAX_SHIELDS:
 			curr_time = time.time()
 			if curr_time - self.last_hit > settings.REGEN_DELAY:
 				if curr_time - self.last_regen > settings.REGEN_SPEED:
-					self.regen_shield()
+					self.add_shield()
 
 	def ready_to_spawn(self):
 		if time.time() - self.death_time > settings.RESPAWN_DELAY:
@@ -140,7 +144,7 @@ class Player:
 		self.alive = False;
 		self.death_time = time.time()
 
-	def regen_shield(self):
+	def add_shield(self):
 		self.last_regen = time.time()
 		self.shields += 1
 

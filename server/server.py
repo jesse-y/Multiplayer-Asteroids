@@ -55,10 +55,13 @@ async def manage_players(app):
 	while True:
 		player = await app['searching'].get()
 
-		if not game:
-			gid = app['gidm'].assign_id()
-			game = Game(game_id=gid)
-			app['games'][game] = game
+		if game is None:
+			if not app['non_full_games'].empty():
+				game = app['non_full_games'].get_nowait()
+			else:
+				gid = app['gidm'].assign_id()
+				game = Game(game_id=gid)
+				app['games'][game] = game				
 		
 		game.join(player)
 		app['in_game'][player] = game
@@ -72,6 +75,8 @@ async def manage_players(app):
 async def game_loop(app, game):
 	while True:
 		game.next_frame()
+		if game.need_players():
+			app['non_full_games'].put_nowait(game)
 		if game.finished:
 			break
 		await asyncio.sleep(1/settings.GAME_SPEED)
@@ -115,6 +120,7 @@ if __name__ == '__main__':
 	
 	app['in_game'] = {}
 	app['games'] = {}
+	app['non_full_games'] = Queue()
 	app['searching'] = Queue(maxsize=settings.MAX_USERS)
 	app['uidm'] = IdManager(max_id=settings.MAX_USERS)
 	app['gidm'] = IdManager()
