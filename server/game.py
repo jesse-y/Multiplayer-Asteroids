@@ -97,7 +97,7 @@ class Game:
 		self.running = True
 
 	def resume(self, player):
-		print('{}> starting game for {}'.format(self, player))
+		print('{}>starting game for {}'.format(self, player))
 		location, angle = self.pick_random_location()
 		player.spawn(location, angle)
 		self.notify_single(player, [MSG_START, player.go.oid, self.game_time, 

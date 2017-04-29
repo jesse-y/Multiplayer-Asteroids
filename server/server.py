@@ -56,6 +56,9 @@ async def manage_players(app):
 	while True:
 		player = await app['searching'].get()
 
+		if game is not None and game.finished:
+			game = None
+
 		if game is None:
 			if len(app['non_full_games']) != 0:
 				_, game = app['non_full_games'].popitem(False)
@@ -67,7 +70,6 @@ async def manage_players(app):
 		game.join(player)
 		app['in_game'][player] = game
 
-		
 		if game.running:
 			game.resume(player)
 		elif game.ready:
