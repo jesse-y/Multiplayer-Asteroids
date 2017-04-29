@@ -21,6 +21,7 @@ class Game:
 		self.oidm = IdManager()
 		self.ready = False
 		self.finished = False
+		self.running = False
 
 		self.last_time = time.time()
 
@@ -92,15 +93,19 @@ class Game:
 		self.create_world()
 		print('{}>start: sending start messages to all players'.format(self))
 		for player in self.players.values():
-			self.notify_single(player, [MSG_START, player.go.oid, self.game_time, 
+			self.resume(player)
+		self.running = True
+
+	def resume(self, player):
+		print('{}> starting game for {}'.format(self, player))
+		location, angle = self.pick_random_location()
+		player.spawn(location, angle)
+		self.notify_single(player, [MSG_START, player.go.oid, self.game_time, 
 				{ 'x': settings.WORLD_X, 'y':settings.WORLD_Y, 'client_rate': settings.CLIENT_RATE }])
 
 	def create_world(self):
-		x, y = 200, 240
-		for player in self.players.values():
-			#player.go.pos = Position(320,240)
-			player.go.pos = Position(x,y)
-			x += 150
+		#for initialising initial state of the world
+		pass
 
 	def update_entities(self, dt):
 		for player in self.players.values():
@@ -200,19 +205,22 @@ class Game:
 
 		self.asteroids[oid] = asteroid
 
-	def spawn_player(self):
+	def spawn_players(self):
 		for player in self.players.values():
 			if player.alive: continue
 			if player.ready_to_spawn():
-				spawnX = random.randint(round(settings.WORLD_X*0.25), round(settings.WORLD_X*0.75))
-				spawnY = random.randint(round(settings.WORLD_Y*0.25), round(settings.WORLD_Y*0.75))
+				location, angle = self.pick_random_location()
+				player.spawn(location, angle)
 
-				centreX = round(settings.WORLD_X/2)
-				centreY = round(settings.WORLD_Y/2)
+	def pick_random_location(self):
+		spawnX = random.randint(round(settings.WORLD_X*0.25), round(settings.WORLD_X*0.75))
+		spawnY = random.randint(round(settings.WORLD_Y*0.25), round(settings.WORLD_Y*0.75))
 
-				angle = math.atan2((centreX-spawnX),(centreY-spawnY))
+		centreX = round(settings.WORLD_X/2)
+		centreY = round(settings.WORLD_Y/2)
 
-				player.spawn([spawnX, spawnY], angle)
+		angle = math.atan2((centreX-spawnX),(centreY-spawnY))
+		return [spawnX, spawnY], angle
 
 	def build_state(self):
 		msg = {}
@@ -242,7 +250,7 @@ class Game:
 			self.spawn_asteroid()
 
 		for player in self.players.values():
-			self.spawn_player()
+			self.spawn_players()
 
 		self.last_time = time.time()
 		self.send_ticker += 1
@@ -260,13 +268,11 @@ class Game:
 			return False
 
 	def notify_single(self, player, msg):
-		success = False
-		if player.user.ws:
+		try:
 			player.user.ws.send_str(json.dumps(msg))
-			success = True
-		return success
+		except:
+			print('failed to send message to {}'.format(player))
 
 	def notify_all(self, msg):
 		for player in self.players.values():
-			if not self.notify_single(player, msg):
-				print('{}>notify_all: could not send to {}'.format(self, player))
+			self.notify_single(player, msg)

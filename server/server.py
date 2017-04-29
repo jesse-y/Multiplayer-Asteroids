@@ -1,6 +1,7 @@
 import asyncio
 from asyncio import Queue
 from aiohttp import web
+from collections import OrderedDict
 import json
 
 import settings
@@ -56,8 +57,8 @@ async def manage_players(app):
 		player = await app['searching'].get()
 
 		if game is None:
-			if not app['non_full_games'].empty():
-				game = app['non_full_games'].get_nowait()
+			if len(app['non_full_games']) != 0:
+				_, game = app['non_full_games'].popitem(False)
 			else:
 				gid = app['gidm'].assign_id()
 				game = Game(game_id=gid)
@@ -66,23 +67,29 @@ async def manage_players(app):
 		game.join(player)
 		app['in_game'][player] = game
 
-		if game.ready:
+		
+		if game.running:
+			game.resume(player)
+		elif game.ready:
 			asyncio.ensure_future(game_loop(app, game))
 			game.start()
 			game = None
+
 		await asyncio.sleep(1/30)
 
 async def game_loop(app, game):
 	while True:
 		game.next_frame()
-		if game.need_players():
-			app['non_full_games'].put_nowait(game)
+		if game.need_players() and game not in app['non_full_games']:
+			app['non_full_games'][game] = game
 		if game.finished:
 			break
 		await asyncio.sleep(1/settings.GAME_SPEED)
 	
 	print('game_{}> finished'.format(game.game_id))
 	del app['games'][game]
+	if game in app['non_full_games']:
+		del app['non_full_games'][game]
 	app['gidm'].release_id(game.game_id)
 	for player in game.players.values():
 		player.user.ws.close()
@@ -120,7 +127,7 @@ if __name__ == '__main__':
 	
 	app['in_game'] = {}
 	app['games'] = {}
-	app['non_full_games'] = Queue()
+	app['non_full_games'] = OrderedDict()
 	app['searching'] = Queue(maxsize=settings.MAX_USERS)
 	app['uidm'] = IdManager(max_id=settings.MAX_USERS)
 	app['gidm'] = IdManager()
