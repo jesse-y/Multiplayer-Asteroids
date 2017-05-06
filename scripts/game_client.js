@@ -109,7 +109,12 @@ function game_client() {
 		for (var key in frame.state.entities) {
 			var entity = frame.state.entities[key];
 			if (entity.type == 'player' && entity.oid != gs.pid()) {
-				render_shape(entity, shapes.player, colours[entity.pid-1], false);
+				var ship_col = colours[entity.pid-1];
+				if (frame.state.hasOwnProperty('events') && frame.state.events.hasOwnProperty(entity.pid)) {
+					render_shape(entity, shapes.player, '#ff0000', false, 2);
+				} else {
+					render_shape(entity, shapes.player, ship_col, false);
+				}
 			}
 			if (entity.type == 'bullet') {
 				render_shape(entity, shapes.bullet, '#ffffff', true);
