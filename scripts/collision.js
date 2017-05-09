@@ -12,7 +12,8 @@ document.body.appendChild(canvas);
 //instructions
 var instructions01 = document.createElement('p');
 instructions01.innerHTML = "\
-This is a collision detection demo. You move the square with wasd or arrow keys, and can rotate it with J and L. \
+This is a collision detection demo based on the Separating Axis Theorem. You move the square with wasd or  \
+arrow keys, and can rotate it with J and L. \
 Press escape to stop the simulation. At each step, each shape is projected against the other's edge normals. \
 If there is at least one edge normal at which no overlap occurs, then these shapes have not collided.";
 document.body.appendChild(instructions01);
@@ -61,68 +62,8 @@ function cycle() {
 
 	console.log('box position: ', pos.x, pos.y, 'box angle: ', sum_angle);
 
-	//begin collision detection
-	var tri_norms = tri.get_normals();
-	var box_norms = box.get_normals();
-
-	var colliding = false;
-	var num_collisions = 0;
-
-	//use triangle norms to check collisions
-	tri_norms.forEach(function (n) {
-		var proj_tri = new projection(tri.true_points(), n);
-		var proj_box = new projection(box.true_points(), n);
-
-		var colour;
-		if (proj_tri.overlaps(proj_box)) {
-			colour = '#ff0000';
-			num_collisions+=1;
-		} else {
-			colour = '#0000ff';
-		}
-
-		var c = tri.centre();
-
-		draw_line([n.x*-1000+c.x, n.y*-1000+c.y],[n.x*1000+c.x,n.y*1000+c.y]);
-		
-		//proj.min/max is a magnitude value. To place it on the canvas we need to multiply
-		//by the edge normal and add the offset of the shape we wish to snap to.
-
-		draw_dot(proj_tri.min*n.x+c.x, proj_tri.min*n.y+c.y, colour);
-		draw_dot(proj_tri.max*n.x+c.x, proj_tri.max*n.y+c.y, colour);
-
-		draw_dot(proj_box.min*n.x+c.x, proj_box.min*n.y+c.y, colour);
-		draw_dot(proj_box.max*n.x+c.x, proj_box.max*n.y+c.y, colour);
-	})
-
-	//use box norms to check collisions
-	box_norms.forEach(function (n) {
-		var proj_tri = new projection(tri.true_points(), n);
-		var proj_box = new projection(box.true_points(), n);
-
-		var colour;
-		if (proj_tri.overlaps(proj_box)) {
-			colour = '#ff0000';
-			num_collisions+=1;
-		} else {
-			colour = '#0000ff';
-		}
-
-		var c = box.centre();
-
-		draw_line([n.x*-1000+c.x, n.y*-1000+c.y],[n.x*1000+c.x,n.y*1000+c.y]);
-		
-		draw_dot(proj_tri.min*n.x+c.x, proj_tri.min*n.y+c.y, colour);
-		draw_dot(proj_tri.max*n.x+c.x, proj_tri.max*n.y+c.y, colour);
-
-		draw_dot(proj_box.min*n.x+c.x, proj_box.min*n.y+c.y, colour);
-		draw_dot(proj_box.max*n.x+c.x, proj_box.max*n.y+c.y, colour);
-	})
-
-	if (num_collisions == tri_norms.length+box_norms.length) colliding = true;
-
 	var shape_colour;
-	if (colliding) {
+	if (tri.colliding(box)) {
 		shape_colour = '#ff0000';
 	} else {
 		shape_colour = '#0000ff';
@@ -131,7 +72,6 @@ function cycle() {
 	box.draw(ctx, shape_colour);
 	tri.draw(ctx, shape_colour);
 
-	console.log('colliding: ', colliding, 'num_collisions=', num_collisions);
 	if (cancel) return;
 	window.setTimeout(cycle, 1000/30);
 }
@@ -168,7 +108,60 @@ function shape(centre, shape_points) {
 		points = new_points;
 	}
 
+	this.overlapping = function (other) {
+		var norms_this = this.get_normals();
+		var num_collisions = 0;
+
+		//use this shape's norms to check collisions
+		for (var i = 0; i < norms_this.length; i++) {
+			var n = norms_this[i];
+			var proj_this = new projection(this.true_points(), n);
+			var proj_other = new projection(other.true_points(), n);
+
+			var colour;
+			if (proj_this.overlaps(proj_other)) {
+				colour = '#ff0000';
+				num_collisions += 1;
+			} else {
+				colour = '#0000ff';
+			}
+
+			var c = this.centre();
+
+			draw_line([n.x*-1000+c.x, n.y*-1000+c.y],[n.x*1000+c.x,n.y*1000+c.y]);
+			
+			//proj.min/max is a magnitude value. To place it on the canvas we need to multiply
+			//by the edge normal and add the offset of the shape we wish to snap to.
+
+			draw_dot(proj_this.min*n.x+c.x, proj_this.min*n.y+c.y, colour);
+			draw_dot(proj_this.max*n.x+c.x, proj_this.max*n.y+c.y, colour);
+
+			draw_dot(proj_other.min*n.x+c.x, proj_other.min*n.y+c.y, colour);
+			draw_dot(proj_other.max*n.x+c.x, proj_other.max*n.y+c.y, colour);
+		}
+
+		if (num_collisions < norms_this.length) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	this.colliding = function (other) {
+		//usually you would return straight if the first shape comparison fails, but
+		//all comparison checks are being done here for visualisation purposes
+		var result = true;
+		if (!this.overlapping(other)) {
+			result = false;
+		} 
+		if (!other.overlapping(this)) {
+			result = false;
+		}
+		return result;
+	}
+
 	this.true_points = function () {
+		//return points based in world space
 		var result = [];
 		points.forEach(function (point) {
 			result.push(new vector2d(point.x+centre.x, point.y+centre.y));
