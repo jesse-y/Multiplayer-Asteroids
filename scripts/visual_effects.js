@@ -40,7 +40,6 @@ function visual_effects(_ctx) {
 			return Math.round((finish - start) * fraction);
 		}
 	}
-
 	this.emitter = function(position, radius, num_particles, duration, colours) {
 		var elapsed = 0;
 		var particles = [];
@@ -80,14 +79,11 @@ function visual_effects(_ctx) {
 		this.complete = function() {
 			return done;
 		}
-
-		function gaussian_rand() {
-			var samples = 6;
-			var result = 0;
-			for (var i = 0; i < samples; i++) {
-				result += Math.random();
-			}
-			return result / samples;
-		}
+	}
+	this.explosion_small = function(position) {
+		return new vfx_obj.emitter(position, 30, 2, 0.33, ['#ffffff']);
+	}
+	this.explosion_large = function(position) {
+		return new vfx_obj.emitter(position, 75, 5, 1.0, ['#ffffff']);
 	}
 }

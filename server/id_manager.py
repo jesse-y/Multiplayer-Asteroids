@@ -7,8 +7,8 @@ class IdManager:
 		self.ids = deque()
 
 	def assign_id(self):
-		if self.last_id == self.max_id and self.max_id > 0 and not self.ids:
-			print('IdManager: max ids requested. max_id=({})'.format(self.max_id))
+		if not self.ids and self.last_id == self.max_id and self.max_id > 0:
+			print('IdManager: max ids requested. max_id=({}), ids={}'.format(self.max_id, self.ids))
 			return -1
 		if self.ids:
 			return self.ids.popleft()

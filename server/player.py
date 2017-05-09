@@ -102,7 +102,7 @@ class Player:
 			self.shields -= 1
 			self.last_hit = time.time()
 			if self.shields < 0:
-				self.kill()
+				self.alive = False
 
 	def no_shields(self):
 		if self.shields is not None and self.shields < 1:

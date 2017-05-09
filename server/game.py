@@ -131,24 +131,27 @@ class Game:
 			for player in self.players.values():
 				if not player.alive: continue
 				if bullet.shape.colliding(player.go.shape):
+					self.events[bullet.oid] = ['hit', 'bullet', bullet.pos.x, bullet.pos.y]
 					to_remove[bullet.oid] = True
 					player.hit()
-					self.events[player.go.oid] = 'hit';
+					self.events[player.go.oid] = ['hit', 'player', player.go.pos.x, player.go.pos.y];
 					if player.destroyed():
-						self.events[player.go.oid] = 'dead';
+						self.events[player.go.oid] = ['dead', 'player', player.go.pos.x, player.go.pos.y];
 						player.kill()
 					elif player.no_shields():
-						self.events[player.go.oid] = 'noshield';
+						self.events[player.go.oid] = ['noshield', 'player', player.go.pos.x, player.go.pos.y];
 
 			for asteroid in self.asteroids.values():
 				if asteroid.oid in to_remove: continue
 				if bullet.shape.colliding(asteroid.shape):
-					self.events[asteroid.oid] = 'hit';
+					self.events[bullet.oid] = ['hit', 'bullet', bullet.pos.x, bullet.pos.y]
+					self.events[asteroid.oid] = ['hit', 'ast'];
 					asteroid.hit()
 					to_remove[bullet.oid] = True
 				if asteroid.destroyed():
 					to_remove[asteroid.oid] = True
 					new_asts.update(asteroid.split(self.oidm))
+					self.events[asteroid.oid] = ['dead', 'ast', asteroid.pos.x, asteroid.pos.y];
 
 		for asteroid in self.asteroids.values():
 			if self.out_of_bounds(asteroid):
@@ -158,12 +161,14 @@ class Game:
 			for player in self.players.values():
 				if not player.alive: continue
 				if asteroid.shape.colliding(player.go.shape):
-					self.events[asteroid.oid] = 'hit'
+					self.events[asteroid.oid] = ['hit', 'asteroid']
 					asteroid.hit(dmg=2)
+					self.events[player.go.oid] = ['dead', 'player', player.go.pos.x, player.go.pos.y];
 					player.kill()
 					if asteroid.destroyed():
 						to_remove[asteroid.oid] = True
 						new_asts.update(asteroid.split(self.oidm))
+						self.events[asteroid.oid] = ['dead', 'ast', asteroid.pos.x, asteroid.pos.y];
 
 		self.asteroids.update(new_asts)
 

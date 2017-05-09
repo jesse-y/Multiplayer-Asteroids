@@ -151,10 +151,19 @@ function game_client() {
 			else				draw_circle([20+(i*offset),20], 7, '#2176ff', false);
 		}
 
-		//render effects
-		if (vfx_items.length < 1) {
-			vfx_items.push(new vfx.emitter([300,300], 50, 7, 0.25, ['#ffffff']));
+		//apply events
+		for (var key in frame.state.events) {
+			var event = frame.state.events[key];
+			var action_code = String(event[0]);
+			var target_code = String(event[1]);
+			if (action_code == 'hit' && target_code == 'bullet') {
+				vfx_items.push(vfx.explosion_small([event[2], event[3]]));
+			} else if (action_code == 'dead') {
+				vfx_items.push(vfx.explosion_large([event[2], event[3]]));
+			}
 		}
+
+		//render effects
 		for (var i = 0; i < vfx_items.length; i++) {
 			var item = vfx_items[i];
 			if (item.complete()) {
@@ -166,15 +175,6 @@ function game_client() {
 			item.update(dt);
 			item.render();
 		}
-
-		//render events
-		/*
-		if (frame.state.hasOwnProperty('events')) {
-			for (var key in frame.state.events) {
-				render_points(frame.state.events[key], '#ff0000');
-			}
-		}
-		*/
 	}
 
 	function render_shape(state, points, colour, fill, thickness) {
