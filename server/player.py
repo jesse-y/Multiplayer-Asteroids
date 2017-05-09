@@ -143,6 +143,8 @@ class Player:
 	def kill(self):
 		self.alive = False;
 		self.death_time = time.time()
+		#remove the player from the gameobject area
+		self.go.pos = Position(5000,5000)
 
 	def add_shield(self):
 		self.last_regen = time.time()

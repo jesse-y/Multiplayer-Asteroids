@@ -3,9 +3,15 @@ function game_client() {
 	var world_x = 800;
 	var world_y = 600;
 
+	var canvas = document.getElementById('viewport');
+	canvas.width = world_x;
+	canvas.height = world_y;
+	var ctx = canvas.getContext('2d');
+
 	var ws;
 	var gs = new game_state();
 	var ih = new input_handler();
+	var vfx = new visual_effects(ctx);
 
 	var get_anim_frame = (function(){
     return window.requestAnimationFrame       ||
@@ -17,11 +23,6 @@ function game_client() {
             window.setTimeout(callback, 1000 / 60);
         };
 	})();
-
-	var canvas = document.getElementById('viewport');
-	canvas.width = world_x;
-	canvas.height = world_y;
-	var ctx = canvas.getContext('2d');
 
 	//default ship colours
 	var colours = ['#2176ff', '#379e3a', '#efe639', '#f7411d', '#cc00cc'];
@@ -44,6 +45,9 @@ function game_client() {
 		asteroid_9: [[38,-6], [21,-30], [-14,-35], [-33,5], [-28,36], [18,26]]
 	}
 
+	//all vfx objects here
+	var vfx_items = [];
+
 	//prepare background information
 	var stars = assign_stars();
 
@@ -62,7 +66,7 @@ function game_client() {
 
 		//update game state and then render it
 		frame = gs.next_frame(dt);
-		render(frame);
+		render(frame, dt);
 
 		last_time = now;
 		get_anim_frame(main);
@@ -97,7 +101,7 @@ function game_client() {
 		gs.state_update(msg);
 	}
 
-	function render(frame) {
+	function render(frame, dt) {
 		//render background
 		render_background();
 		//ctx.fillStyle = '#D9D9D9';
@@ -110,7 +114,7 @@ function game_client() {
 			var entity = frame.state.entities[key];
 			if (entity.type == 'player' && entity.oid != gs.pid()) {
 				var ship_col = colours[entity.pid-1];
-				if (frame.state.hasOwnProperty('events') && frame.state.events.hasOwnProperty(entity.pid)) {
+				if (frame.state.events.hasOwnProperty(entity.pid)) {
 					render_shape(entity, shapes.player, '#ff0000', false, 2);
 				} else {
 					render_shape(entity, shapes.player, ship_col, false);
@@ -121,7 +125,7 @@ function game_client() {
 			}
 			if (entity.type.match(/^asteroid_[1-9]$/)) {
 				var ast_col = '#ffffff';
-				if (frame.state.hasOwnProperty('events') && frame.state.events.hasOwnProperty(entity.oid)) {
+				if (frame.state.events.hasOwnProperty(entity.oid)) {
 					ast_col = '#ff0000';
 				}
 				render_shape(entity, shapes[entity.type], ast_col, false);
@@ -145,6 +149,22 @@ function game_client() {
 		for (var i = 0; i < 3; i++) {
 			if (i+1 <= shields) draw_circle([20+(i*offset),20], 7, '#2176ff', true);
 			else				draw_circle([20+(i*offset),20], 7, '#2176ff', false);
+		}
+
+		//render effects
+		if (vfx_items.length < 1) {
+			vfx_items.push(new vfx.emitter([300,300], 50, 7, 0.25, ['#ffffff']));
+		}
+		for (var i = 0; i < vfx_items.length; i++) {
+			var item = vfx_items[i];
+			if (item.complete()) {
+				vfx_items.splice(i, 1);
+				i--;
+				continue;
+			}
+
+			item.update(dt);
+			item.render();
 		}
 
 		//render events

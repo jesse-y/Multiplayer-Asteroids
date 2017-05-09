@@ -133,16 +133,17 @@ class Game:
 				if bullet.shape.colliding(player.go.shape):
 					to_remove[bullet.oid] = True
 					player.hit()
+					self.events[player.go.oid] = 'hit';
 					if player.destroyed():
-						self.events[player.go.oid] = { 'action':'dead' }
+						self.events[player.go.oid] = 'dead';
 						player.kill()
 					elif player.no_shields():
-						self.events[player.go.oid] = { 'action':'noshield' }
+						self.events[player.go.oid] = 'noshield';
 
 			for asteroid in self.asteroids.values():
 				if asteroid.oid in to_remove: continue
 				if bullet.shape.colliding(asteroid.shape):
-					self.events[asteroid.oid] = { 'action':'hit' }
+					self.events[asteroid.oid] = 'hit';
 					asteroid.hit()
 					to_remove[bullet.oid] = True
 				if asteroid.destroyed():
@@ -157,7 +158,7 @@ class Game:
 			for player in self.players.values():
 				if not player.alive: continue
 				if asteroid.shape.colliding(player.go.shape):
-					self.events[asteroid.oid] = { 'action':'hit' }
+					self.events[asteroid.oid] = 'hit'
 					asteroid.hit(dmg=2)
 					player.kill()
 					if asteroid.destroyed():
