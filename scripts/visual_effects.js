@@ -40,19 +40,26 @@ function visual_effects(_ctx) {
 			return Math.round((finish - start) * fraction);
 		}
 	}
-	this.emitter = function(position, radius, num_particles, duration, colours) {
+
+	this.emitter = function(position, inner_radius, outer_radius, num_particles, duration, colours) {
 		var elapsed = 0;
 		var particles = [];
 		var done = false;
 
 		for (var i = 0; i < num_particles; i++) {
-			var dist = Math.abs((Math.random() - Math.random()) * radius);
+			var inner_dist = Math.abs((Math.random() - Math.random()) * inner_radius);
+			var outer_dist = Math.abs((Math.random() - Math.random()) * (outer_radius - inner_radius)) + inner_radius;
 			var angle = Math.random() * Math.PI * 2;
 
-			var x = position[0] + dist * Math.sin(angle);
-			var y = position[1] + dist * Math.cos(angle);
+			var ix = position[0] + inner_dist * Math.sin(angle);
+			var iy = position[1] + inner_dist * Math.cos(angle);
 
-			particles.push(new vfx_obj.particle(position, [x, y], duration, colours));
+			var ox = position[0] + outer_dist * Math.sin(angle);
+			var oy = position[1] + outer_dist * Math.cos(angle);
+
+			var rand_dur = duration + ((Math.random() - 0.5) * duration * 0.4);
+
+			particles.push(new vfx_obj.particle([ix,iy], [ox, oy], rand_dur, colours));
 		}
 
 		this.update = function(dt) {
@@ -80,10 +87,12 @@ function visual_effects(_ctx) {
 			return done;
 		}
 	}
+
 	this.explosion_small = function(position) {
-		return new vfx_obj.emitter(position, 30, 2, 0.33, ['#ffffff']);
+		return new vfx_obj.emitter(position, 10, 40, 2, 0.33, ['#ffffff']);
 	}
+
 	this.explosion_large = function(position) {
-		return new vfx_obj.emitter(position, 75, 5, 1.0, ['#ffffff']);
+		return new vfx_obj.emitter(position, 20, 85, 5, 1.0, ['#ffffff']);
 	}
 }
