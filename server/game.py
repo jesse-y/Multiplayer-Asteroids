@@ -104,7 +104,7 @@ class Game:
 				{ 'x': settings.WORLD_X, 'y':settings.WORLD_Y, 'client_rate': settings.CLIENT_RATE }])
 
 	def create_world(self):
-		#for initialising initial state of the world
+		#for initialising starting state of the world
 		pass
 
 	def update_entities(self, dt):
@@ -122,7 +122,7 @@ class Game:
 	def check_collisions(self):
 		to_remove = {}
 
-		new_asts = {};
+		new_asts = {}
 		for bullet in self.bullets.values():
 			if self.out_of_bounds(bullet):
 				to_remove[bullet.oid] = True
@@ -130,16 +130,16 @@ class Game:
 
 			for player in self.players.values():
 				if not player.alive: continue
-				if bullet.shape.colliding(player.go.shape):
+				if bullet.shape.colliding(player.go.shape) and bullet.pid != player.pid:
 					self.events[bullet.oid] = ['hit', 'bullet', bullet.pos.x, bullet.pos.y]
 					to_remove[bullet.oid] = True
 					player.hit()
-					self.events[player.go.oid] = ['hit', 'player', player.go.pos.x, player.go.pos.y];
+					self.events[player.go.oid] = ['hit', 'player', player.go.pos.x, player.go.pos.y]
 					if player.destroyed():
-						self.events[player.go.oid] = ['dead', 'player', player.go.pos.x, player.go.pos.y];
+						self.events[player.go.oid] = ['dead', 'player', player.go.pos.x, player.go.pos.y, player.pid]
 						player.kill()
 					elif player.no_shields():
-						self.events[player.go.oid] = ['noshield', 'player', player.go.pos.x, player.go.pos.y];
+						self.events[player.go.oid] = ['noshield', 'player', player.go.pos.x, player.go.pos.y, player.pid]
 
 			for asteroid in self.asteroids.values():
 				if asteroid.oid in to_remove: continue
@@ -151,7 +151,7 @@ class Game:
 				if asteroid.destroyed():
 					to_remove[asteroid.oid] = True
 					new_asts.update(asteroid.split(self.oidm))
-					self.events[asteroid.oid] = ['dead', 'ast', asteroid.pos.x, asteroid.pos.y];
+					self.events[asteroid.oid] = ['dead', 'ast', asteroid.pos.x, asteroid.pos.y]
 
 		for asteroid in self.asteroids.values():
 			if self.out_of_bounds(asteroid):
@@ -163,12 +163,12 @@ class Game:
 				if asteroid.shape.colliding(player.go.shape):
 					self.events[asteroid.oid] = ['hit', 'asteroid']
 					asteroid.hit(dmg=2)
-					self.events[player.go.oid] = ['dead', 'player', player.go.pos.x, player.go.pos.y];
+					self.events[player.go.oid] = ['dead', 'player', player.go.pos.x, player.go.pos.y, player.pid]
 					player.kill()
 					if asteroid.destroyed():
 						to_remove[asteroid.oid] = True
 						new_asts.update(asteroid.split(self.oidm))
-						self.events[asteroid.oid] = ['dead', 'ast', asteroid.pos.x, asteroid.pos.y];
+						self.events[asteroid.oid] = ['dead', 'ast', asteroid.pos.x, asteroid.pos.y]
 
 		self.asteroids.update(new_asts)
 

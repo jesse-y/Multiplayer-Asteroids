@@ -88,11 +88,11 @@ function visual_effects(_ctx) {
 		}
 	}
 
-	this.explosion_small = function(position) {
-		return new vfx_obj.emitter(position, 10, 40, 2, 0.33, ['#ffffff']);
+	this.explosion_small = function(position, colour) {
+		return new vfx_obj.emitter(position, 10, 40, 2, 0.33, colour);
 	}
 
-	this.explosion_large = function(position) {
-		return new vfx_obj.emitter(position, 20, 85, 5, 1.0, ['#ffffff']);
+	this.explosion_large = function(position, colour) {
+		return new vfx_obj.emitter(position, 20, 85, 5, 1.0, colour);
 	}
 }

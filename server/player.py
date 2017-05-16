@@ -3,7 +3,7 @@ from math import atan2, cos, sin
 
 import settings
 from datatypes import User, Vector, Position
-from game_object import GameObject
+from game_object import GameObject, Bullet
 
 class Player:
 
@@ -84,14 +84,15 @@ class Player:
 		if self.clicked and (time.time() - self.last_shot) > 1/settings.BULLETS_PER_SECOND:
 			oid = oidm.assign_id()
 			
-			bx = sin(self.go.angle) * 20 + self.go.pos.x
-			by = cos(self.go.angle) * 20 + self.go.pos.y
+			bx = sin(self.go.angle) * 15 + self.go.pos.x
+			by = cos(self.go.angle) * 15 + self.go.pos.y
 
-			bullet = GameObject(
-				pos=Position(bx, by), 
+			bullet = Bullet(
+				pos=Position(bx, by),
 				angle=self.go.angle,
 				oid=oid, 
-				obj_type='bullet')
+				obj_type='bullet',
+				pid=self.pid)
 
 			entities[oid] = bullet
 			self.last_shot = time.time()

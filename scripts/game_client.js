@@ -121,7 +121,7 @@ function game_client() {
 				}
 			}
 			if (entity.type == 'bullet') {
-				render_shape(entity, shapes.bullet, '#ffffff', true);
+				render_shape(entity, shapes.bullet, colours[entity.pid-1], true);
 			}
 			if (entity.type.match(/^asteroid_[1-9]$/)) {
 				var ast_col = '#ffffff';
@@ -157,9 +157,15 @@ function game_client() {
 			var action_code = String(event[0]);
 			var target_code = String(event[1]);
 			if (action_code == 'hit' && target_code == 'bullet') {
-				vfx_items.push(vfx.explosion_small([event[2], event[3]]));
+				vfx_items.push(vfx.explosion_small([event[2], event[3]], ['#ffffff']));
 			} else if (action_code == 'dead') {
-				vfx_items.push(vfx.explosion_large([event[2], event[3]]));
+				var colour;
+				if (target_code == 'ast') {
+					colour = ['#ffffff'];
+				} else {
+					colour = colours[event[4]-1];
+				}
+				vfx_items.push(vfx.explosion_large([event[2], event[3]], [colour]));
 			}
 		}
 
