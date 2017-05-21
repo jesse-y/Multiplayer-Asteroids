@@ -50,6 +50,7 @@ function visual_effects(_ctx) {
 		var done = false;
 
 		for (var i = 0; i < num_particles; i++) {
+			//use linear random distribution with a left bias
 			var inner_dist = Math.abs((Math.random() - Math.random()) * inner_radius);
 			var outer_dist = Math.abs((Math.random() - Math.random()) * (outer_radius - inner_radius)) + inner_radius;
 			var angle = Math.random() * Math.PI * 2;

@@ -42,13 +42,14 @@ async def wshandler(request):
 				if data[0] == MSG_JOIN:
 					player = new_player(app, data[1], ws)
 			
-			#ws.send_str('Server: message={}'.format(msg.data))
 		elif msg.tp == web.MsgType.close or msg.tp == web.MsgType.error:
 			break
 
 	if player:
 		disconnect_player(app, player)
 		print('disconnect: uid={}, username={}'.format(player.user.uid, player.user.username))
+
+	await ws.close()
 	return ws
 
 async def manage_players(app):

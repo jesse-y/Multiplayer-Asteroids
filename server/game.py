@@ -66,7 +66,7 @@ class Game:
 			self.ready = True
 
 	def disconnect_player(self, quitter):
-		if quitter in self.players:
+		if quitter.pid in self.players:
 			del self.players[quitter.pid]
 			self.oidm.release_id(quitter.go.oid)
 			self.pidm.release_id(quitter.pid)
@@ -171,7 +171,7 @@ class Game:
 				if not player.alive: continue
 				if player.pid == rocket.owner_id: continue
 				if rocket.shape.colliding(player.go.shape):
-					self.events[rocket.oid] = ['hit', 'rocket', rocket.pos.x, rocket.pos.y]
+					self.events[rocket.oid] = ['hit', 'rocket', rocket.pos.x, rocket.pos.y, rocket.owner_id]
 					self.events[player.go.oid] = ['dead', 'player', player.go.pos.x, player.go.pos.y, player.pid]
 					to_remove[rocket.oid] = True
 					player.kill()
@@ -179,7 +179,7 @@ class Game:
 			for asteroid in self.asteroids.values():
 				if asteroid.oid in to_remove: continue
 				if rocket.shape.colliding(asteroid.shape):
-					self.events[rocket.oid] = ['hit', 'rocket', rocket.pos.x, rocket.pos.y]
+					self.events[rocket.oid] = ['hit', 'rocket', rocket.pos.x, rocket.pos.y, rocket.owner_id]
 					self.events[asteroid.oid] = ['hit', 'ast'];
 					asteroid.hit(dmg=4)
 					to_remove[rocket.oid] = True
@@ -315,6 +315,7 @@ class Game:
 
 	def notify_single(self, player, msg):
 		try:
+			dir(player.user.ws)
 			player.user.ws.send_str(json.dumps(msg))
 		except:
 			print('failed to send message to {}'.format(player))

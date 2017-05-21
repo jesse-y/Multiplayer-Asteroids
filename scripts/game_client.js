@@ -160,8 +160,12 @@ function game_client() {
 			var event = frame.state.events[key];
 			var action_code = String(event[0]);
 			var target_code = String(event[1]);
-			if (action_code == 'hit' && target_code == 'bullet') {
-				vfx_items.push(vfx.explosion_small([event[2], event[3]], ['#ffffff']));
+			if (action_code == 'hit') {
+				if (target_code == 'bullet') {
+					vfx_items.push(vfx.explosion_small([event[2], event[3]], ['#ffffff']));
+				} else if (target_code == 'rocket') {
+					vfx_items.push(vfx.explosion_small([event[2], event[3]], [colours[event[4]-1]]));
+				}
 			} else if (action_code == 'dead') {
 				var colour;
 				if (target_code == 'ast') {
