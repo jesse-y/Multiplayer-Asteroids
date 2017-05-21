@@ -48,6 +48,7 @@ function game_client() {
 
 	//all vfx objects here
 	var vfx_items = [];
+	var uniq_vfx = {};
 
 	//prepare background information
 	var stars = assign_stars();
@@ -133,6 +134,10 @@ function game_client() {
 			}
 			if (entity.type == 'rocket') {
 				render_shape(entity, shapes.rocket, colours[entity.owner_id-1], false);
+				if (!uniq_vfx.hasOwnProperty(entity.oid)) {
+					vfx_items.push(vfx.rocket_trail(entity.oid));
+					uniq_vfx[entity.oid] = true;
+				}
 			}
 		}
 
@@ -178,15 +183,23 @@ function game_client() {
 		}
 
 		//render effects
+
+		/*if (vfx_items.length < 1) {
+			vfx_items.push(new vfx.vfx_line([100,200], [300,400], 0.25, ['#ffe100', '#ff0000']));
+		}*/
+
 		for (var i = 0; i < vfx_items.length; i++) {
 			var item = vfx_items[i];
 			if (item.complete()) {
 				vfx_items.splice(i, 1);
 				i--;
+				if (item.target_obj != -1) {
+					delete uniq_vfx[item.target_obj];
+				}
 				continue;
 			}
 
-			item.update(dt);
+			item.update(dt, frame);
 			item.render();
 		}
 	}
