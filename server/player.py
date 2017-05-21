@@ -130,7 +130,7 @@ class Player:
 			)
 			rockets[rocket.oid] = rocket
 			self.last_rocket = time.time()
-			
+
 		self.use_ability = False
 
 		return bullets, rockets
@@ -149,10 +149,7 @@ class Player:
 			return False
 
 	def destroyed(self):
-		if not self.alive:
-			return True
-		else:
-			return False
+		return self.alive
 
 	def restore_shields(self):
 		#regeneration rules: 

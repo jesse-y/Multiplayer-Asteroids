@@ -98,7 +98,7 @@ function game_state() {
 		}
 
 		if (snapshot.state.entities.hasOwnProperty(pid) && snapshot.state.entities[pid].alive) {
-			if (alive == false) {
+			if (!alive) {
 				//we have just respawned, reset player position
 				var p = snapshot.state.entities[pid];
 				player.x = p.x;
@@ -191,8 +191,6 @@ function game_state() {
 			predicted_player.pid = from.state.entities[pid].pid;
 			interp.predicted_player = predicted_player;
 		}
-
-		//TO DO: check collisions and update animations
 
 		return interp;
 	}

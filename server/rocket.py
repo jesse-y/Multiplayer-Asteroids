@@ -1,4 +1,4 @@
-from math import sin, cos, atan2, sqrt, radians, pi
+from math import sin, cos, atan2, sqrt, pi
 
 from game_object import GameObject
 from datatypes import Position

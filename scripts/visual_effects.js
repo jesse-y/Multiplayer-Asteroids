@@ -26,6 +26,10 @@ function visual_effects(_ctx) {
 	var ctx = _ctx;
 	var vfx_obj = this;
 
+	//all vfx objects require the functions update(), render() and complete().
+
+	//a simple particle that moves in a linear motion from start to finish coordinates
+	//in the form [x, y] over its specified duration
 	this.particle = function(start, finish, duration, colours) {
 		var elapsed = 0;
 		var position = {
@@ -66,6 +70,7 @@ function visual_effects(_ctx) {
 		}
 	}
 
+	//simple line that transitions from one colour to the next over its duration.
 	this.vfx_line = function(p1, p2, duration, colours) {
 		var elapsed = 0;
 		var done = false;
@@ -104,6 +109,11 @@ function visual_effects(_ctx) {
 		}
 	}
 
+	//line emitter, used for producing rocket trails. the emitter is assigned to an
+	//object in the current frame. each frame the emitter periodically produces vfx_lines
+	//that follow the path the targetted object has taken.
+	//emitter_speed: how often the emitter will spawn a new vfx_line, done on a per-call basis
+	//line_decay: the duration of each line the emitter produces
 	this.line_emitter = function(oid, emitter_speed, line_decay, colours) {
 		var iter = -1;
 		var lines = [];
@@ -146,9 +156,11 @@ function visual_effects(_ctx) {
 
 			var px, py;
 			if (prev_endpoint.length == 0) {
+				//specify a dot if this is the first line the emitter is producing
 				px = tx + 1;
 				py = ty + 1;
 			} else {
+				//otherwise connect the new line to the location of the old one
 				px = prev_endpoint[0];
 				py = prev_endpoint[1];
 			}
@@ -172,6 +184,9 @@ function visual_effects(_ctx) {
 
 	}
 
+	//emits the specified number of particles in a random direction and duration. the randomness is
+	//a distribution with a skewed preference for points closer to the centre.
+	//all particles will travel a random distance from the inner_radius to outer_radius
 	this.emitter = function(position, inner_radius, outer_radius, num_particles, duration, colours) {
 		var elapsed = 0;
 		var particles = [];
@@ -221,6 +236,8 @@ function visual_effects(_ctx) {
 			return done;
 		}
 	}
+
+	//PRESET VFX OBJECTS -------------------------------------------------------------//
 
 	this.explosion_small = function(position, colour) {
 		return new vfx_obj.emitter(position, 10, 40, 2, 0.33, colour);

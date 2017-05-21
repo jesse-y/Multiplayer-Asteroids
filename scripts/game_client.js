@@ -183,11 +183,6 @@ function game_client() {
 		}
 
 		//render effects
-
-		/*if (vfx_items.length < 1) {
-			vfx_items.push(new vfx.vfx_line([100,200], [300,400], 0.25, ['#ffe100', '#ff0000']));
-		}*/
-
 		for (var i = 0; i < vfx_items.length; i++) {
 			var item = vfx_items[i];
 			if (item.complete()) {
