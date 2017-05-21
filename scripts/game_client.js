@@ -31,6 +31,7 @@ function game_client() {
 	//default object shapes
 	var shapes = {
 		player: [[0,20], [14,-14], [-14,-14]],
+		rocket: [[0,10],[5,-5],[-5,-5]],
 		shield: [[0,22], [15,-15], [-15,-15]],
 		bullet: [[2,2], [2,-2], [-2,-2], [-2,2]],
 		star: [[1,1], [1,-1], [-1,-1], [-1,1]],
@@ -130,6 +131,9 @@ function game_client() {
 				}
 				render_shape(entity, shapes[entity.type], ast_col, false);
 			}
+			if (entity.type == 'rocket') {
+				render_shape(entity, shapes.rocket, colours[entity.owner_id-1], false);
+			}
 		}
 
 		//render predicted player
@@ -145,7 +149,7 @@ function game_client() {
 		} else {
 			shields = 0;
 		}
-		var offset = 20;
+		var offset = 25;
 		for (var i = 0; i < 3; i++) {
 			if (i+1 <= shields) draw_circle([20+(i*offset),20], 7, '#2176ff', true);
 			else				draw_circle([20+(i*offset),20], 7, '#2176ff', false);
@@ -279,7 +283,6 @@ function game_client() {
 			ctx.stroke();
 		}
 		ctx.restore();
-
 	}
 
 	this.reset_screen = function() {
@@ -298,46 +301,3 @@ function game_client() {
 
 	this.reset_screen();	
 }
-
-/*
-//deprecated
-function render_ship(_pid, state, debug) {
-	var debug_str = 'server: [x: ' + Math.floor(state.x) + 
-	', y: ' + Math.floor(state.y) + 
-	', angle: ' + state.a + 
-	', mouseX: ' + window.input.mouseX() + 
-	', mouseY: ' + window.input.mouseY() + ']';
-	window.print_msg('render_ship', debug_str);
-
-	px = 50 * Math.sin(state.a);
-	py = 50 * Math.cos(state.a);
-
-	ctx.save();
-	ctx.translate(state.x, state.y);
-
-	//aiming line
-	ctx.beginPath();
-	ctx.moveTo(0,0);
-	ctx.lineTo(px, py);
-	ctx.stroke();
-
-	ctx.rotate(-state.a);
-
-	//player is a triangle
-	ctx.fillStyle = colours[_pid-1];
-	ctx.strokeStyle = colours[_pid-1];
-	ctx.beginPath();
-	ctx.moveTo(0,20);
-	ctx.lineTo(14,-14);
-	ctx.lineTo(-14,-14);
-	ctx.lineTo(0,20);
-	
-	if (debug) {
-		ctx.stroke();
-	} else {
-		ctx.fill();
-	}
-
-	ctx.restore();
-}
-*/

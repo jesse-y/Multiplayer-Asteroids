@@ -85,7 +85,7 @@ class Asteroid(GameObject):
 			oid = oidm.assign_id()
 			ast = Asteroid(
 				pos=self.pos,
-				angle=(dir / num_dirs) * math.pi,
+				angle=(dir / num_dirs) * math.pi * 2,
 				oid=oid,
 				ast_id=new_id
 			)

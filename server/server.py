@@ -135,7 +135,6 @@ if __name__ == '__main__':
 	app['gidm'] = IdManager()
 
 	asyncio.ensure_future(manage_players(app))
-	#asyncio.ensure_future(reporting(app))
 
 	app.router.add_route('GET', '/connect', wshandler)
 	app.router.add_route('GET', '/', handle)

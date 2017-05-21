@@ -25,6 +25,8 @@
 				key = 'RIGHT'; break;
 			case 27:
 				key = 'ESCAPE'; break;
+			case 32:
+				key = 'SPACE'; break;
 			default:
 				key = String.fromCharCode(code);
 		}
@@ -83,6 +85,9 @@
 			}
 			if (keys['ESCAPE']) {
 				commands.push('ESCAPE');
+			}
+			if (keys['SPACE']) {
+				commands.push('SPACE');
 			}
 			return commands;
 		}

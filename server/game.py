@@ -28,6 +28,7 @@ class Game:
 		self.players = {}
 		self.asteroids = {}
 		self.bullets = {}
+		self.rockets = {}
 
 		self.events = {}
 
@@ -53,7 +54,7 @@ class Game:
 		if oid != -1 and pid != -1 and len(self.players) < settings.MAX_PLAYERS:
 			new_player.go.oid = oid
 			new_player.pid = pid
-			self.players[new_player] = new_player
+			self.players[new_player.pid] = new_player
 		else:
 			self.notify_single(new_player, [MSG_ERROR, 'max players reached'])
 			return
@@ -66,7 +67,7 @@ class Game:
 
 	def disconnect_player(self, quitter):
 		if quitter in self.players:
-			del self.players[quitter]
+			del self.players[quitter.pid]
 			self.oidm.release_id(quitter.go.oid)
 			self.pidm.release_id(quitter.pid)
 		else:
@@ -110,7 +111,9 @@ class Game:
 	def update_entities(self, dt):
 		for player in self.players.values():
 			player.go.move(dt=1./settings.CLIENT_RATE)
-			self.bullets.update(player.spawn_entities(self.oidm))
+			bullets, rockets = player.spawn_entities(self.oidm, self.players)
+			self.bullets.update(bullets)
+			self.rockets.update(rockets)
 			player.restore_shields()
 
 		for bullet in self.bullets.values():
@@ -118,6 +121,13 @@ class Game:
 
 		for asteroid in self.asteroids.values():
 			asteroid.forward(dt)
+
+		for rocket in self.rockets.values():
+			if rocket.target_id is None:
+				r_target = None
+			else:
+				r_target = self.players[rocket.target_id]
+			rocket.forward(dt, r_target)
 
 	def check_collisions(self):
 		to_remove = {}
@@ -153,6 +163,31 @@ class Game:
 					new_asts.update(asteroid.split(self.oidm))
 					self.events[asteroid.oid] = ['dead', 'ast', asteroid.pos.x, asteroid.pos.y]
 
+		for rocket in self.rockets.values():
+			if self.out_of_bounds(rocket):
+				to_remove[rocket.oid] = True
+
+			for player in self.players.values():
+				if not player.alive: continue
+				if player.pid == rocket.owner_id: continue
+				if rocket.shape.colliding(player.go.shape):
+					self.events[rocket.oid] = ['hit', 'rocket', rocket.pos.x, rocket.pos.y]
+					self.events[player.go.oid] = ['dead', 'player', player.go.pos.x, player.go.pos.y, player.pid]
+					to_remove[rocket.oid] = True
+					player.kill()
+
+			for asteroid in self.asteroids.values():
+				if asteroid.oid in to_remove: continue
+				if rocket.shape.colliding(asteroid.shape):
+					self.events[rocket.oid] = ['hit', 'rocket', rocket.pos.x, rocket.pos.y]
+					self.events[asteroid.oid] = ['hit', 'ast'];
+					asteroid.hit(dmg=4)
+					to_remove[rocket.oid] = True
+				if asteroid.destroyed():
+					to_remove[asteroid.oid] = True
+					new_asts.update(asteroid.split(self.oidm))
+					self.events[asteroid.oid] = ['dead', 'ast', asteroid.pos.x, asteroid.pos.y]
+
 		for asteroid in self.asteroids.values():
 			if self.out_of_bounds(asteroid):
 				to_remove[asteroid.oid] = True
@@ -179,6 +214,9 @@ class Game:
 			elif key in self.asteroids:
 				self.oidm.release_id(key)
 				del self.asteroids[key]
+			elif key in self.rockets:
+				self.oidm.release_id(key)
+				del self.rockets[key]
 
 	def spawn_asteroid(self, ast_id=None):
 		#choose asteroid type
@@ -238,6 +276,8 @@ class Game:
 			msg['entities'][bullet.oid] = bullet.build()
 		for asteroid in self.asteroids.values():
 			msg['entities'][asteroid.oid] = asteroid.build()
+		for rocket in self.rockets.values():
+			msg['entities'][rocket.oid] = rocket.build()
 		msg['events'] = self.events
 		self.events = {}
 		return msg

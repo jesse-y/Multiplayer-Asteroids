@@ -1,9 +1,11 @@
 import time
-from math import atan2, cos, sin
+from math import atan2, cos, sin, sqrt
 
 import settings
 from datatypes import User, Vector, Position
-from game_object import GameObject, Bullet
+from game_object import GameObject
+from bullet import Bullet
+from rocket import Rocket
 
 class Player:
 
@@ -32,17 +34,21 @@ class Player:
 		self.pid = pid
 		self.go = go
 		self.clicked = False
+		self.use_ability = False
 		#command id processing for reconciliation
 		self.last_id = -1
 		self.received_ids = 0
 		#player status info
 		self.alive = True
 		self.last_shot = time.time()
+		self.last_rocket = time.time()
 		self.last_hit = time.time()
 		self.last_regen = time.time()
 		self.death_time = time.time()
 		#object stats
 		self.shields = settings.MAX_SHIELDS
+		#extra info
+		self.mouse_info = { 'x':0, 'y':0 }
 
 	def __hash__(self):
 		return hash(self.user)
@@ -62,6 +68,7 @@ class Player:
 		#handle aiming and ship orientation
 		cx = inputs[0]['mouseX']
 		cy = inputs[0]['mouseY']
+		self.mouse_info = { 'x':cx, 'y':cy }
 		angle = atan2((cx-self.go.pos.x), (cy-self.go.pos.y))
 		self.go.angle = angle
 
@@ -69,6 +76,9 @@ class Player:
 		moves = inputs[0]['commands']
 		x, y = 0, 0
 		for move in moves:
+			if move == 'SPACE':
+				self.use_ability = True
+				continue
 			try:
 				dx, dy = self.movemap.get(move)
 				x, y = x + dx, y + dy
@@ -79,8 +89,8 @@ class Player:
 		#handle shooting
 		self.clicked = inputs[0]['clicked']
 
-	def spawn_entities(self, oidm):
-		entities = {}
+	def spawn_entities(self, oidm, players):
+		bullets, rockets = {}, {}
 		if self.clicked and (time.time() - self.last_shot) > 1/settings.BULLETS_PER_SECOND:
 			oid = oidm.assign_id()
 			
@@ -94,13 +104,40 @@ class Player:
 				obj_type='bullet',
 				pid=self.pid)
 
-			entities[oid] = bullet
+			bullets[oid] = bullet
 			self.last_shot = time.time()
-		return entities
 
-	def hit(self):
+		if self.use_ability and (time.time() - self.last_rocket) > 1/settings.ROCKETS_PER_SECOND:
+			oid = oidm.assign_id()
+
+			#find the player closest to the last known mouse position
+			min_dist = None
+			min_id = None
+			for player in players.values():
+				if player.pid == self.pid or not player.alive:
+					continue
+				dist = sqrt((player.go.pos.x - self.mouse_info['x'])**2 + (player.go.pos.y - self.mouse_info['y'])**2)
+				if min_dist is None or dist < min_dist:
+					min_dist = dist
+					min_id = player.pid
+
+			rocket = Rocket(
+				pos=self.go.pos,
+				angle=self.go.angle,
+				oid=oid,
+				target_id=min_id,
+				owner_id=self.pid
+			)
+			rockets[rocket.oid] = rocket
+			self.last_rocket = time.time()
+			
+		self.use_ability = False
+
+		return bullets, rockets
+
+	def hit(self, dmg=1):
 		if self.shields is not None:
-			self.shields -= 1
+			self.shields -= dmg
 			self.last_hit = time.time()
 			if self.shields < 0:
 				self.alive = False

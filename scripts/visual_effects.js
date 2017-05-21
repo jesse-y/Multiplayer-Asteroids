@@ -27,7 +27,10 @@ function visual_effects(_ctx) {
 			ctx.save();
 
 			ctx.fillStyle = colour;
-			ctx.fillRect(position.x, position.y, 1, 1);
+			//ctx.fillRect(position.x, position.y, 1, 1);
+			ctx.beginPath();
+			ctx.arc(position.x,position.y,1,0,2*Math.PI);
+			ctx.fill();
 
 			ctx.restore();
 		}

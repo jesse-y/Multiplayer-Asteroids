@@ -15,6 +15,11 @@ MAX_SHIELDS = 3
 REGEN_DELAY = 3
 REGEN_SPEED = 1
 RESPAWN_DELAY = 3
+ROCKET_BASE_SPEED = 100
+ROCKET_ACCELERATION = 200
+ROCKET_ROT_SPEED = 1
+ROCKET_MAX_SPEED = 8000
+ROCKETS_PER_SECOND = 2
 
 #app settings
 MAX_USERS = 100
@@ -31,6 +36,7 @@ obj_type_speed = {
 obj_type_shape = {
 	'player': [[0,20],[14,-14],[-14,-14]],
 	'bullet': [[2,2],[2,-2],[-2,-2],[-2,2]],
+	'rocket': [[0,10],[5,-5],[-5,-5]],
 	'asteroid_1': [[0,10], [12,5], [5,-7], [-2,-9], [-6,4]],
 	'asteroid_2': [[3,15], [13,5], [9,-9], [-11,-5], [-8,1]],
 	'asteroid_3': [[5,9], [15,9], [2,-12], [-16,-7], [-10,5]],
