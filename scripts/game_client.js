@@ -123,6 +123,9 @@ function game_client() {
 				} else {
 					render_shape(entity, shapes.player, ship_col, false);
 				}
+				if (entity.invuln) {
+					draw_circle([entity.x, entity.y], 25, '#ffe100', false);
+				}
 			}
 			if (entity.type == 'bullet') {
 				render_shape(entity, shapes.bullet, colours[entity.pid-1], true);
@@ -148,6 +151,9 @@ function game_client() {
 		if (frame.hasOwnProperty('predicted_player')) {
 			var pp = frame.predicted_player;
 			render_shape(pp, shapes.player, colours[pp.pid-1], false);
+			if (frame.state.entities[gs.pid()].invuln) {
+				draw_circle([pp.x, pp.y], 25, '#ffe100', false);
+			}
 		}
 
 		//render hud

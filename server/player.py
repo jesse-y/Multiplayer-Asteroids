@@ -45,6 +45,8 @@ class Player:
 		self.last_hit = time.time()
 		self.last_regen = time.time()
 		self.death_time = time.time()
+		self.last_invuln = time.time()
+		self.invulnerable = False
 		#object stats
 		self.shields = settings.MAX_SHIELDS
 		#extra info
@@ -88,6 +90,11 @@ class Player:
 
 		#handle shooting
 		self.clicked = inputs[0]['clicked']
+
+	def update(self, dt=None):
+		self.go.move(dt)
+		if time.time() - self.last_invuln > settings.INVULN_DURATION:
+			self.invulnerable = False
 
 	def spawn_entities(self, oidm, players):
 		bullets, rockets = {}, {}
@@ -170,6 +177,8 @@ class Player:
 
 	def spawn(self, pos, angle):
 		self.alive = True
+		self.invulnerable = True
+		self.last_invuln = time.time()
 		self.go.pos = Position(pos[0], pos[1])
 		self.go.angle = angle
 		self.shields = settings.MAX_SHIELDS
@@ -191,6 +200,7 @@ class Player:
 			'pid':self.pid,
 			'last_id':self.last_id,
 			'shields':self.shields,
-			'alive':self.alive
+			'alive':self.alive,
+			'invuln':self.invulnerable
 		})
 		return entity

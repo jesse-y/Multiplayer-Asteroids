@@ -110,7 +110,8 @@ class Game:
 
 	def update_entities(self, dt):
 		for player in self.players.values():
-			player.go.move(dt=1./settings.CLIENT_RATE)
+			#player.go.move(dt=1./settings.CLIENT_RATE)
+			player.update(dt=1./settings.CLIENT_RATE)
 			bullets, rockets = player.spawn_entities(self.oidm, self.players)
 			self.bullets.update(bullets)
 			self.rockets.update(rockets)
@@ -139,7 +140,7 @@ class Game:
 				continue
 
 			for player in self.players.values():
-				if not player.alive: continue
+				if not player.alive or player.invulnerable: continue
 				if bullet.shape.colliding(player.go.shape) and bullet.pid != player.pid:
 					self.events[bullet.oid] = ['hit', 'bullet', bullet.pos.x, bullet.pos.y]
 					to_remove[bullet.oid] = True
@@ -168,7 +169,7 @@ class Game:
 				to_remove[rocket.oid] = True
 
 			for player in self.players.values():
-				if not player.alive: continue
+				if not player.alive or player.invulnerable: continue
 				if player.pid == rocket.owner_id: continue
 				if rocket.shape.colliding(player.go.shape):
 					self.events[rocket.oid] = ['hit', 'rocket', rocket.pos.x, rocket.pos.y, rocket.owner_id]
@@ -194,7 +195,7 @@ class Game:
 				continue
 
 			for player in self.players.values():
-				if not player.alive: continue
+				if not player.alive or player.invulnerable: continue
 				if asteroid.shape.colliding(player.go.shape):
 					self.events[asteroid.oid] = ['hit', 'asteroid']
 					asteroid.hit(dmg=2)
