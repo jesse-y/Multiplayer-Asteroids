@@ -31,6 +31,7 @@ function game_client() {
 	//default object shapes
 	var shapes = {
 		player: [[0,20], [14,-14], [-14,-14]],
+		player_invuln: [[0,25], [18,-16], [-18,-16]],
 		rocket: [[0,10],[5,-5],[-5,-5]],
 		shield: [[0,22], [15,-15], [-15,-15]],
 		bullet: [[2,2], [2,-2], [-2,-2], [-2,2]],
@@ -117,14 +118,14 @@ function game_client() {
 			//if the player object is not the current player
 			if (entity.type == 'player' && entity.oid != gs.pid()) {
 				var ship_col = colours[entity.pid-1];
-				if (frame.state.events.hasOwnProperty(entity.pid)) {
+				if (frame.state.events.hasOwnProperty(entity.oid)) {
 					//if the object is hit show its hitting animation
 					render_shape(entity, shapes.player, '#ff0000', false, 2);
 				} else {
 					render_shape(entity, shapes.player, ship_col, false);
 				}
 				if (entity.invuln) {
-					draw_circle([entity.x, entity.y], 25, '#ffe100', false);
+					render_shape(entity, shapes.player_invuln, '#ffe100', false);
 				}
 			}
 			if (entity.type == 'bullet') {
@@ -152,21 +153,8 @@ function game_client() {
 			var pp = frame.predicted_player;
 			render_shape(pp, shapes.player, colours[pp.pid-1], false);
 			if (frame.state.entities[gs.pid()].invuln) {
-				draw_circle([pp.x, pp.y], 25, '#ffe100', false);
+				render_shape(pp, shapes.player_invuln, '#ffe100', false);
 			}
-		}
-
-		//render hud
-		var shields;
-		if (frame.state.entities.hasOwnProperty(gs.pid())) {
-			shields = frame.state.entities[gs.pid()].shields;
-		} else {
-			shields = 0;
-		}
-		var offset = 25;
-		for (var i = 0; i < 3; i++) {
-			if (i+1 <= shields) draw_circle([20+(i*offset),20], 7, '#2176ff', true);
-			else				draw_circle([20+(i*offset),20], 7, '#2176ff', false);
 		}
 
 		//apply events
@@ -189,13 +177,11 @@ function game_client() {
 				}
 				vfx_items.push(vfx.explosion_large([event[2], event[3]], [colour]));
 			} else if (action_code == 'noshield') {
-				console.log('NO SHIELD EVENT RECEIVED')
 				var player_id = event[2];
 				var player_oid = event[3];
 				var colour = colours[player_id-1];
 
 				if (!uniq_vfx.hasOwnProperty(player_oid)) {
-					console.log('PUSHED NEW VFX OBJECT');
 					uniq_vfx[player_oid] = true;
 					vfx_items.push(vfx.noshield(player_oid, colour));
 				}
@@ -217,6 +203,26 @@ function game_client() {
 
 			item.update(dt, frame);
 			item.render();
+		}
+
+		//render hud
+		var shields;
+		var n_rockets;
+		if (frame.state.entities.hasOwnProperty(gs.pid())) {
+			shields = frame.state.entities[gs.pid()].shields;
+			n_rockets = frame.state.entities[gs.pid()].rockets;
+		} else {
+			shields = 0;
+			n_rockets = '2';
+		}
+		var offset = 25;
+		for (var i = 0; i < 3; i++) {
+			if (i+1 <= shields) draw_circle([20+(i*offset),20], 7, '#2176ff', true);
+			else				draw_circle([20+(i*offset),20], 7, '#2176ff', false);
+		}
+		for (var i = 0; i < 2; i++) {
+			if (i+1 <= n_rockets) draw_circle([95+(i*offset),20], 7, '#ff9823', true);
+			else				  draw_circle([95+(i*offset),20], 7, '#ff9823', false);
 		}
 	}
 

@@ -42,6 +42,7 @@ class Player:
 		self.alive = True
 		self.last_shot = time.time()
 		self.last_rocket = time.time()
+		self.last_rocket_get = time.time()
 		self.last_hit = time.time()
 		self.last_regen = time.time()
 		self.death_time = time.time()
@@ -49,6 +50,7 @@ class Player:
 		self.invulnerable = False
 		#object stats
 		self.shields = settings.MAX_SHIELDS
+		self.rockets = settings.MAX_ROCKETS
 		#extra info
 		self.mouse_info = { 'x':0, 'y':0 }
 
@@ -93,8 +95,15 @@ class Player:
 
 	def update(self, dt=None):
 		self.go.move(dt)
-		if time.time() - self.last_invuln > settings.INVULN_DURATION:
+		curr_time = time.time()
+		if curr_time - self.last_invuln > settings.INVULN_DURATION:
 			self.invulnerable = False
+		if curr_time - self.last_rocket_get > settings.ROCKET_RECHARGE_SPEED and self.rockets < settings.MAX_ROCKETS:
+			self.rockets += 1
+			self.last_rocket_get = curr_time
+		elif self.rockets == settings.MAX_ROCKETS:
+			#do not allow rocket delays to overload over the maximum number of allowed rockets
+			self.last_rocket_get = curr_time
 
 	def spawn_entities(self, oidm, players):
 		bullets, rockets = {}, {}
@@ -114,7 +123,7 @@ class Player:
 			bullets[oid] = bullet
 			self.last_shot = time.time()
 
-		if self.use_ability and (time.time() - self.last_rocket) > 1/settings.ROCKETS_PER_SECOND:
+		if self.use_ability and (time.time() - self.last_rocket) > 1/settings.ROCKETS_PER_SECOND and self.rockets > 0:
 			oid = oidm.assign_id()
 
 			#find the player closest to the last known mouse position
@@ -136,6 +145,7 @@ class Player:
 				owner_id=self.pid
 			)
 			rockets[rocket.oid] = rocket
+			self.rockets -= 1;
 			self.last_rocket = time.time()
 
 		self.use_ability = False
@@ -201,6 +211,7 @@ class Player:
 			'last_id':self.last_id,
 			'shields':self.shields,
 			'alive':self.alive,
-			'invuln':self.invulnerable
+			'invuln':self.invulnerable,
+			'rockets':self.rockets
 		})
 		return entity
