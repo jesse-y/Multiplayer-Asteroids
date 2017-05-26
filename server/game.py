@@ -149,7 +149,7 @@ class Game:
 						self.events[player.go.oid] = ['dead', 'player', player.go.pos.x, player.go.pos.y, player.pid]
 						player.kill()
 					elif player.no_shields():
-						self.events[player.go.oid] = ['noshield', 'player', player.go.pos.x, player.go.pos.y, player.pid]
+						self.events[player.go.oid] = ['noshield', 'player', player.pid, player.go.oid]
 
 			for asteroid in self.asteroids.values():
 				if asteroid.oid in to_remove: continue

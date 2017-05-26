@@ -149,7 +149,7 @@ class Player:
 			return False
 
 	def destroyed(self):
-		return self.alive
+		return not self.alive
 
 	def restore_shields(self):
 		#regeneration rules: 

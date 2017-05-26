@@ -70,6 +70,47 @@ function visual_effects(_ctx) {
 		}
 	}
 
+	//attached to an object in the current frame, a simple circle is drawn over the location
+	//over the length of its duration from its start and finish size, which is the circle radius
+	this.expanding_circ = function(oid, start_size, finish_size, duration, colour) {
+		var elapsed = 0;
+		var done = false;
+		var curr_size = start_size;
+		var curr_loc = [0, 0];
+
+		this.target_obj = oid;
+
+		this.update = function(dt, frame) {
+			elapsed += dt;
+			if (elapsed >= duration || done) {
+				done = true;
+				return;
+			}
+			var time_frac = elapsed / duration;
+			curr_size = tween(start_size, finish_size, time_frac);
+
+			if (!frame.state.entities.hasOwnProperty(oid)) {
+				return;
+			} else {
+				var target = frame.state.entities[oid];
+				curr_loc = [target.x, target.y];
+			}
+		}
+
+		this.render = function() {
+			ctx.save();
+			ctx.strokeStyle = colour;
+			ctx.beginPath();
+			ctx.arc(curr_loc[0],curr_loc[1],curr_size,0,2*Math.PI);
+			ctx.stroke();
+			ctx.restore();
+		}
+
+		this.complete = function() {
+			return done;
+		}
+	}
+
 	//simple line that transitions from one colour to the next over its duration.
 	this.vfx_line = function(p1, p2, duration, colours) {
 		var elapsed = 0;
@@ -249,6 +290,10 @@ function visual_effects(_ctx) {
 
 	this.rocket_trail = function(oid) {
 		return new vfx_obj.line_emitter(oid, 3, 0.25, ['#ffe100', '#ff0000']);
+	}
+
+	this.noshield = function(oid, colour) {
+		return new vfx_obj.expanding_circ(oid, 20, 50, 0.3, colour);
 	}
 
 	//HELPER FUNCTIONS ---------------------------------------------------------------//

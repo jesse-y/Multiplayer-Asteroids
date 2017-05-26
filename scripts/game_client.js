@@ -114,9 +114,11 @@ function game_client() {
 		//render entities
 		for (var key in frame.state.entities) {
 			var entity = frame.state.entities[key];
+			//if the player object is not the current player
 			if (entity.type == 'player' && entity.oid != gs.pid()) {
 				var ship_col = colours[entity.pid-1];
 				if (frame.state.events.hasOwnProperty(entity.pid)) {
+					//if the object is hit show its hitting animation
 					render_shape(entity, shapes.player, '#ff0000', false, 2);
 				} else {
 					render_shape(entity, shapes.player, ship_col, false);
@@ -127,6 +129,7 @@ function game_client() {
 			}
 			if (entity.type.match(/^asteroid_[1-9]$/)) {
 				var ast_col = '#ffffff';
+				//render the asteroid in red if it is hit this frame
 				if (frame.state.events.hasOwnProperty(entity.oid)) {
 					ast_col = '#ff0000';
 				}
@@ -179,6 +182,18 @@ function game_client() {
 					colour = colours[event[4]-1];
 				}
 				vfx_items.push(vfx.explosion_large([event[2], event[3]], [colour]));
+			} else if (action_code == 'noshield') {
+				console.log('NO SHIELD EVENT RECEIVED')
+				var player_id = event[2];
+				var player_oid = event[3];
+				var colour = colours[player_id-1];
+
+				if (!uniq_vfx.hasOwnProperty(player_oid)) {
+					console.log('PUSHED NEW VFX OBJECT');
+					uniq_vfx[player_oid] = true;
+					vfx_items.push(vfx.noshield(player_oid, colour));
+				}
+
 			}
 		}
 
