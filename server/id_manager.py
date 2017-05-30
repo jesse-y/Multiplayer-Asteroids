@@ -17,4 +17,5 @@ class IdManager:
 			return self.last_id
 
 	def release_id(self, new_id):
+		print('releasing id: {}'.format(new_id))
 		self.ids.append(new_id)
