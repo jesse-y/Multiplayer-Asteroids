@@ -115,7 +115,6 @@ class Game:
 			bullets, rockets = player.spawn_entities(self.oidm, self.players)
 			self.bullets.update(bullets)
 			self.rockets.update(rockets)
-			player.restore_shields()
 
 		for bullet in self.bullets.values():
 			bullet.forward(dt)
@@ -316,7 +315,6 @@ class Game:
 
 	def notify_single(self, player, msg):
 		try:
-			dir(player.user.ws)
 			player.user.ws.send_str(json.dumps(msg))
 		except:
 			print('failed to send message to {}'.format(player))

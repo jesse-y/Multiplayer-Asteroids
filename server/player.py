@@ -40,15 +40,19 @@ class Player:
 		self.received_ids = 0
 		#player status info
 		self.alive = True
-		self.last_shot = time.time()
-		self.last_rocket = time.time()
-		self.last_rocket_get = time.time()
-		self.last_hit = time.time()
-		self.last_regen = time.time()
-		self.death_time = time.time()
-		self.last_invuln = time.time()
+		self.out_of_lives = False
+		#timing information
+		curr_time = time.time()
+		self.last_shot = curr_time
+		self.last_rocket = curr_time
+		self.last_rocket_get = curr_time
+		self.last_hit = curr_time
+		self.last_regen = curr_time
+		self.death_time = curr_time
+		self.last_invuln = curr_time
 		self.invulnerable = False
 		#object stats
+		self.lives = settings.MAX_PLAYER_LIVES
 		self.shields = settings.MAX_SHIELDS
 		self.rockets = settings.MAX_ROCKETS
 		#extra info
@@ -95,6 +99,7 @@ class Player:
 
 	def update(self, dt=None):
 		self.go.move(dt)
+		self.restore_shields()
 		curr_time = time.time()
 		if curr_time - self.last_invuln > settings.INVULN_DURATION:
 			self.invulnerable = False
@@ -180,7 +185,7 @@ class Player:
 					self.add_shield()
 
 	def ready_to_spawn(self):
-		if time.time() - self.death_time > settings.RESPAWN_DELAY:
+		if time.time() - self.death_time > settings.RESPAWN_DELAY and not self.out_of_lives:
 			return True
 		else:
 			return False
@@ -197,6 +202,9 @@ class Player:
 	def kill(self):
 		self.alive = False;
 		self.death_time = time.time()
+		self.lives -= 1
+		if self.lives < 0:
+			self.out_of_lives = True
 		#remove the player from the gameobject area
 		self.go.pos = Position(5000,5000)
 
@@ -212,6 +220,7 @@ class Player:
 			'shields':self.shields,
 			'alive':self.alive,
 			'invuln':self.invulnerable,
-			'rockets':self.rockets
+			'rockets':self.rockets,
+			'lives':self.lives
 		})
 		return entity
