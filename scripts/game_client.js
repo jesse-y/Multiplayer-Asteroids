@@ -206,24 +206,93 @@ function game_client() {
 		}
 
 		//render hud
-		var shields;
-		var n_rockets;
+		var shields = 0;
+		var n_rockets = 0;
 		if (frame.state.entities.hasOwnProperty(gs.pid())) {
 			shields = frame.state.entities[gs.pid()].shields;
 			n_rockets = frame.state.entities[gs.pid()].rockets;
-		} else {
-			shields = 0;
-			n_rockets = '2';
+
 		}
-		var offset = 25;
-		for (var i = 0; i < 3; i++) {
-			if (i+1 <= shields) draw_circle([20+(i*offset),20], 7, '#2176ff', true);
-			else				draw_circle([20+(i*offset),20], 7, '#2176ff', false);
+
+		dot_ui(shields, 3, 'SHIELDS', [20,20], '#2176ff');
+		dot_ui(n_rockets, 2, 'ROCKETS', [105,20], '#ff9823');
+		dot_ui(gs.lives(), 5, 'LIVES', [20,60], colours[gs.col_id()-1]);
+
+	}
+
+	function dot_ui(curr_val, max_val, name, position, colour) {
+		var dot_offset = 25;
+		var dot_radius = 7;
+		
+		var ui_padding = 7;
+		var ui_radius = 5;
+
+		ctx.font = '20px MunroSmall';
+		var ui_text_height = text_height(name, 'MunroSmall', '20px');
+		var ui_text_width = ctx.measureText(name).width;
+
+		var width = ui_padding * 2 + dot_offset * (max_val-1) + dot_radius * 2;
+		var height = dot_radius * 2 + ui_padding * 2;
+		
+		var width_padding = 0;
+		if (width < ui_text_width+10+ui_padding) {
+			width_padding = (ui_text_width+10+ui_padding) - width;
+			width = ui_text_width+10+ui_padding;
 		}
-		for (var i = 0; i < 2; i++) {
-			if (i+1 <= n_rockets) draw_circle([95+(i*offset),20], 7, '#ff9823', true);
-			else				  draw_circle([95+(i*offset),20], 7, '#ff9823', false);
+
+		var ui_text_start = width/2 - ui_text_width/2;
+		var ui_centre = height / 2;
+
+		var x = position[0];
+		var y = position[1];
+
+		ctx.beginPath();
+		ctx.strokeStyle = '#ffffff';
+		ctx.moveTo(x + ui_radius, y);
+		ctx.lineTo(x+ui_text_start-5, y);
+		ctx.closePath();
+		ctx.stroke();
+
+		ctx.beginPath();
+		ctx.strokeStyle = '#ffffff';
+		ctx.moveTo(x+ui_text_start+5+ui_text_width, y);
+		ctx.lineTo(x + width - ui_radius, y);
+		ctx.quadraticCurveTo(x + width, y, x + width, y + ui_radius);
+		ctx.lineTo(x + width, y + height - ui_radius);
+		ctx.quadraticCurveTo(x + width, y + height, x + width - ui_radius, y + height);
+		ctx.lineTo(x + ui_radius, y + height);
+		ctx.quadraticCurveTo(x, y + height, x, y + height - ui_radius);
+		ctx.lineTo(x, y + ui_radius);
+		ctx.quadraticCurveTo(x, y, x + ui_radius, y);
+		ctx.moveTo(0,0);
+		ctx.closePath();
+		ctx.stroke();
+
+		ctx.fillStyle = '#ffffff';
+		ctx.fillText(name, x+ui_text_start, y+(ui_text_height/4));
+
+		var x_start = x+ui_padding;
+		if (width_padding > 0) {
+			x_start += width_padding/2; 
 		}
+		for (var i = 0; i < max_val; i++) {
+			if (i+1 <= curr_val)   draw_circle([x_start+(i*dot_offset)+dot_radius,y+ui_centre], dot_radius, colour, true);
+			else				   draw_circle([x_start+(i*dot_offset)+dot_radius,y+ui_centre], dot_radius, colour, false);
+		}
+	}
+
+	function text_height(text, font, size) {
+		var temp_div = document.createElement('div');
+		var temp_text = document.createTextNode(text);
+
+		temp_div.appendChild(temp_text);
+
+		temp_text.style = 'font-family: ' + font + '; font-size: ' + size + ';';
+
+		document.body.appendChild(temp_div);
+		var result = temp_div.offsetHeight;
+		document.body.removeChild(temp_div);
+		return result;
 	}
 
 	function render_shape(state, points, colour, fill, thickness) {

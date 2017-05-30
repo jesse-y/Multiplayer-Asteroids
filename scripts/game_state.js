@@ -8,6 +8,8 @@ function game_state() {
 	//game state
 	var game_time;
 	var pid;
+	var col_id;
+	var lives;
 	var player;
 	var alive;
 
@@ -22,6 +24,12 @@ function game_state() {
 
 	this.pid = function() {
 		return pid;
+	}
+	this.lives = function() {
+		return lives;
+	}
+	this.col_id = function() {
+		return col_id;
 	}
 
 	this.init = function(player_id, start_time, world) {
@@ -189,6 +197,8 @@ function game_state() {
 			//add predicted player to the frame object
 			var predicted_player = clone(player);
 			predicted_player.pid = from.state.entities[pid].pid;
+			lives = from.state.entities[pid].lives;
+			col_id = predicted_player.pid;
 			interp.predicted_player = predicted_player;
 		}
 

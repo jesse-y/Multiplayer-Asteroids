@@ -68,10 +68,16 @@ function connect_screen() {
 
 function game_screen() {
 	this.init = function() {
+		var txt_load = document.createElement('div');
+		txt_load.id = 'font_load';
+		txt_load.appendChild(document.createTextNode('sample text'));
+
 		var gs_canvas = document.createElement('canvas');
 		gs_canvas.id = 'viewport';
 
-		document.getElementById('app').appendChild(gs_canvas);
+		var app = document.getElementById('app');
+		app.appendChild(txt_load);
+		app.appendChild(gs_canvas);
 	};
 
 	this.init();
