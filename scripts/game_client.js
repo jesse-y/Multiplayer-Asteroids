@@ -214,9 +214,9 @@ function game_client() {
 
 		}
 
-		dot_ui(shields, 3, 'SHIELDS', [20,20], '#53d7e2');
-		dot_ui(n_rockets, 2, 'ROCKETS', [105,20], '#ff9823');
-		dot_ui(gs.lives(), 5, 'LIVES', [20,60], colours[gs.col_id()-1]);
+		dot_ui(shields, 3, 'SHIELDS', [15,15], '#53d7e2');
+		dot_ui(n_rockets, 2, 'ROCKETS', [105,15], '#ff9823');
+		dot_ui(gs.lives(), 5, 'LIVES', [world_x-140,15], colours[gs.col_id()-1]);
 
 	}
 

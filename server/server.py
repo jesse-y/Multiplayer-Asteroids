@@ -3,6 +3,7 @@ from asyncio import Queue
 from aiohttp import web
 from collections import OrderedDict
 import json
+import traceback
 
 import settings
 from id_manager import IdManager
@@ -23,9 +24,15 @@ async def wshandler(request):
 	ws = web.WebSocketResponse()
 	await ws.prepare(request)
 
+
 	player = None
 	while True:
-		msg = await ws.receive()
+		try:
+			msg = await ws.receive()
+		except Exception as e:
+			print(e)
+			traceback.print_exc()
+			break
 
 		if msg.tp == web.MsgType.text:
 			#print('Got message {}'.format(msg.data))
@@ -49,8 +56,13 @@ async def wshandler(request):
 		disconnect_player(app, player)
 		print('disconnect: uid={}, username={}'.format(player.user.uid, player.user.username))
 
-	await ws.close()
-	return ws
+	try:
+		await ws.close()
+		return ws
+	except Exception as e:
+		print(e)
+		traceback.print_exc()
+		return
 
 async def manage_players(app):
 	game = None
@@ -114,13 +126,6 @@ def disconnect_player(app, player):
 	if player in app['in_game']:
 		app['in_game'][player].disconnect_player(player)
 		del app['in_game'][player]
-
-async def reporting(app):
-	while True:
-		print('IN GAME USERS:')
-		for player in app['in_game']:
-			print('{}: {}'.format(app['in_game'][player], player))
-		await asyncio.sleep(3)
 
 if __name__ == '__main__':
 	event_loop = asyncio.get_event_loop()
