@@ -26,7 +26,7 @@ class Rocket(GameObject):
 
 	def forward(self, dt, target):
 		if target is not None and target.alive:
-			angle_to_target = atan2((target.go.pos.x-self.pos.x), (target.go.pos.y-self.pos.y))
+			angle_to_target = atan2((target.pos.x-self.pos.x), (target.pos.y-self.pos.y))
 
 			diff = self.angle - angle_to_target
 			if diff < -pi: diff += 2*pi
@@ -56,3 +56,55 @@ class Rocket(GameObject):
 			'owner_id':self.owner_id,
 			'target_id':self.target_id
 		}
+
+	def update(self, dt, game):
+		if self.target_id is None:
+			r_target = None
+		else:
+			r_target = game.players[self.target_id]
+
+		self.forward(dt, r_target)
+		return {}, {}
+
+	def onhit(self, other, game):
+		to_del, ent, evt = {}, {}, {}
+		#default case, return nothing
+		def skip():
+			return to_del, ent, evt
+
+		def player():
+			if not other.alive or other.invulnerable:
+				pass
+			elif other.pid == self.owner_id:
+				pass
+			elif self.shape.colliding(other.shape):
+				evt[self.oid] = ['hit', 'rocket', self.pos.x, self.pos.y, self.owner_id]
+				evt[other.oid] = ['dead', 'player', other.pos.x, other.pos.y, other.pid]
+				to_del[self.oid] = True
+				other.kill()
+			return to_del, ent, evt
+
+		def asteroid():
+			if self.shape.colliding(other.shape):
+				evt[self.oid] = ['hit', 'rocket', self.pos.x, self.pos.y, self.owner_id]
+				evt[other.oid] = ['hit', 'ast'];
+				other.hit(dmg=4)
+				to_del[self.oid] = True
+				if other.destroyed():
+					to_del[other.oid] = True
+					ent.update(other.split(game.oidm))
+					evt[other.oid] = ['dead', 'ast', other.pos.x, other.pos.y]
+			return to_del, ent, evt
+
+		return {
+			'player':player,
+			'asteroid_1':asteroid,
+			'asteroid_2':asteroid,
+			'asteroid_3':asteroid,
+			'asteroid_4':asteroid,
+			'asteroid_5':asteroid,
+			'asteroid_6':asteroid,
+			'asteroid_7':asteroid,
+			'asteroid_8':asteroid,
+			'asteroid_9':asteroid
+		}.get(other.type, skip)()

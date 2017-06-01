@@ -91,3 +91,31 @@ class Asteroid(GameObject):
 			)
 			objects.update({ oid: ast })
 		return objects
+
+	def update(self, dt, game):
+		self.forward(dt)
+		return {}, {}
+
+	def onhit(self, other, game):
+		to_del, ent, evt = {}, {}, {}
+		#default case, return nothing
+		def skip():
+			return to_del, ent, evt
+
+		def player():
+			if not other.alive or other.invulnerable:
+				pass
+			elif self.shape.colliding(other.shape):
+				evt[self.oid] = ['hit', 'ast']
+				self.hit(dmg=2)
+				evt[other.oid] = ['dead', 'player', other.pos.x, other.pos.y, other.pid]
+				other.kill()
+				if self.destroyed():
+					to_del[self.oid] = True
+					ent.update(self.split(game.oidm))
+					evt[self.oid] = ['dead', 'ast', self.pos.x, self.pos.y]
+			return to_del, ent, evt
+
+		return {
+			'player':player,
+		}.get(other.type, skip)()

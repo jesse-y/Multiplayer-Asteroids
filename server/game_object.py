@@ -28,7 +28,7 @@ class GameObject:
 		self.dist_travelled = 0
 
 	def __str__(self):
-		return '{} {} {}'.format(self.pos, self.angle)
+		return '{}-{} {} {}'.format(self.type, self.oid, self.pos, self.angle)
 
 	def get_speed(self):
 		#if this object was not assigned a speed explicitly

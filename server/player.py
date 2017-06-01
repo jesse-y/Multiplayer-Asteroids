@@ -7,7 +7,7 @@ from game_object import GameObject
 from bullet import Bullet
 from rocket import Rocket
 
-class Player:
+class Player(GameObject):
 
 	keymap = {
 		37:'LEFT',
@@ -28,11 +28,17 @@ class Player:
 	}
 
 	def __init__(self, user, go=None, pid=-1):
+		if go is not None:
+			super().__init__(
+				pos=go.pos,
+				angle=go.angle,
+				oid=go.oid,
+				obj_type=go.type
+			)
 		#the user id is specific to each server process
 		self.user = user
 		#the player id is specific to each game the player is in
 		self.pid = pid
-		self.go = go
 		self.clicked = False
 		self.use_ability = False
 		#command id processing for reconciliation
@@ -77,8 +83,8 @@ class Player:
 		cx = inputs[0]['mouseX']
 		cy = inputs[0]['mouseY']
 		self.mouse_info = { 'x':cx, 'y':cy }
-		angle = atan2((cx-self.go.pos.x), (cy-self.go.pos.y))
-		self.go.angle = angle
+		angle = atan2((cx-self.pos.x), (cy-self.pos.y))
+		self.angle = angle
 
 		#handle movement vector to apply next update iteration
 		moves = inputs[0]['commands']
@@ -92,13 +98,15 @@ class Player:
 				x, y = x + dx, y + dy
 			except:
 				print('p_{}:{}>input: invalid move: {}'.format(self.user.uid, self.user.username, move))
-		self.go.vec = Vector(x, y)
+		self.vec = Vector(x, y)
 
 		#handle shooting
 		self.clicked = inputs[0]['clicked']
 
-	def update(self, dt=None):
-		self.go.move(dt)
+	def update(self, dt, game):
+		#player objects have to be updated at a constant rate for prediction to work
+		dt = 1./settings.CLIENT_RATE
+		self.move(dt)
 		self.restore_shields()
 		curr_time = time.time()
 		if curr_time - self.last_invuln > settings.INVULN_DURATION:
@@ -110,17 +118,24 @@ class Player:
 			#do not allow rocket delays to overload over the maximum number of allowed rockets
 			self.last_rocket_get = curr_time
 
+		bullets, rockets = self.spawn_entities(game.oidm, game.players)
+		#merging rockets and bullets dicts
+		return {**bullets, **rockets}, {}
+
+	def onhit(self, other, game):
+		return {}, {}, {}
+
 	def spawn_entities(self, oidm, players):
 		bullets, rockets = {}, {}
 		if self.clicked and (time.time() - self.last_shot) > 1/settings.BULLETS_PER_SECOND:
 			oid = oidm.assign_id()
 			
-			bx = sin(self.go.angle) * 15 + self.go.pos.x
-			by = cos(self.go.angle) * 15 + self.go.pos.y
+			bx = sin(self.angle) * 15 + self.pos.x
+			by = cos(self.angle) * 15 + self.pos.y
 
 			bullet = Bullet(
 				pos=Position(bx, by),
-				angle=self.go.angle,
+				angle=self.angle,
 				oid=oid, 
 				obj_type='bullet',
 				pid=self.pid)
@@ -137,14 +152,14 @@ class Player:
 			for player in players.values():
 				if player.pid == self.pid or not player.alive:
 					continue
-				dist = sqrt((player.go.pos.x - self.mouse_info['x'])**2 + (player.go.pos.y - self.mouse_info['y'])**2)
+				dist = sqrt((player.pos.x - self.mouse_info['x'])**2 + (player.pos.y - self.mouse_info['y'])**2)
 				if min_dist is None or dist < min_dist:
 					min_dist = dist
 					min_id = player.pid
 
 			rocket = Rocket(
-				pos=self.go.pos,
-				angle=self.go.angle,
+				pos=self.pos,
+				angle=self.angle,
 				oid=oid,
 				target_id=min_id,
 				owner_id=self.pid
@@ -194,10 +209,10 @@ class Player:
 		self.alive = True
 		self.invulnerable = True
 		self.last_invuln = time.time()
-		self.go.pos = Position(pos[0], pos[1])
-		self.go.angle = angle
+		self.pos = Position(pos[0], pos[1])
+		self.angle = angle
 		self.shields = settings.MAX_SHIELDS
-		return self.go
+		return self
 
 	def kill(self):
 		self.alive = False;
@@ -206,14 +221,14 @@ class Player:
 		if self.lives < 0:
 			self.out_of_lives = True
 		#remove the player from the gameobject area
-		self.go.pos = Position(5000,5000)
+		self.pos = Position(5000,5000)
 
 	def add_shield(self):
 		self.last_regen = time.time()
 		self.shields += 1
 
 	def build(self):
-		entity = self.go.build()
+		entity = super().build()
 		entity.update({
 			'pid':self.pid,
 			'last_id':self.last_id,
