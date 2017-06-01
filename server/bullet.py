@@ -58,6 +58,9 @@ class Bullet(GameObject):
 					evt[other.oid] = ['dead', 'ast', other.pos.x, other.pos.y]
 			return to_del, ent, evt
 
+		#NOTE: the second argument of dict.get() is the default value to return if no
+		#value was found in the dict. therefore, if we are checking two game_objects that
+		#have no collision rules, we return skip(), which returns nothing
 		return {
 			'player':player,
 			'asteroid_1':asteroid,

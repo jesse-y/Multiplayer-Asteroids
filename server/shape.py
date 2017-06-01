@@ -48,10 +48,11 @@ class Shape:
 		#get desired matrix dimensions.
 		proj = self.world_points().dot(shape_norms.transpose())
 		#the first axis contains the result of each dot product PER EDGE NORMAL.
-		#we need to extract the minimum and maximum for each edge normal
+		#we need to extract the minimum and maximum for each edge normal to get an interval
 		mins = np.amin(proj, 0)
 		maxs = np.amax(proj, 0)
 		#zip together the results into a 2d array of the same form as the points array
+		#where instead of [x, y] we get [min, max] of the interval this point was projected against
 		return np.hstack([ mins[:,None], maxs[:,None] ])
 
 	def overlaps(self, other):

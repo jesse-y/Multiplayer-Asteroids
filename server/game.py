@@ -139,6 +139,7 @@ class Game:
 			to_del1, new_ent1, new_evt1 = obj1.onhit(obj2, self)
 			to_del2, new_ent2, new_evt2 = obj2.onhit(obj1, self)
 
+			#update collision events
 			to_delete.update({ **to_del1, **to_del2 } )
 			new_entities.update({ **new_ent1, **new_ent2 })
 			new_events.update({ **new_evt1, **new_evt2 })
