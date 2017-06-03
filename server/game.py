@@ -203,7 +203,6 @@ class Game:
 		msg['entities'] = {}
 
 		for entity in self.entities.values():
-			if entity.type == 'player' and not entity.alive: continue
 			msg['entities'][entity.oid] = entity.build()
 
 		msg['events'] = self.events

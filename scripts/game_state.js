@@ -105,7 +105,7 @@ function game_state() {
 			player.a = sp.a;
 		}
 
-		if (snapshot.state.entities.hasOwnProperty(pid) && snapshot.state.entities[pid].alive) {
+		if (snapshot.state.entities[pid].alive) {
 			if (!alive) {
 				//we have just respawned, reset player position
 				var p = snapshot.state.entities[pid];
@@ -184,6 +184,11 @@ function game_state() {
 				var fe = from.state.entities[key];
 				var te = to.state.entities[key];
 
+				//don't render dead players
+				if (te.hasOwnProperty('alive') && !te.alive) {
+					server_entity.alive = false;
+				}
+
 				//tween translation
 				server_entity.x = tween(fe.x, te.x, frac_t);
 				server_entity.y = tween(fe.y, te.y, frac_t);
@@ -193,14 +198,15 @@ function game_state() {
 			}
 		}
 
-		if (alive && from.state.entities.hasOwnProperty(pid)) {
+		if (alive) {
 			//add predicted player to the frame object
 			var predicted_player = clone(player);
 			predicted_player.pid = from.state.entities[pid].pid;
-			lives = from.state.entities[pid].lives;
-			col_id = predicted_player.pid;
 			interp.predicted_player = predicted_player;
 		}
+		//set variables for ui
+		lives = from.state.entities[pid].lives;
+		col_id = from.state.entities[pid].pid;
 
 		return interp;
 	}

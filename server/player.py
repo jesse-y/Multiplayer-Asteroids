@@ -61,6 +61,7 @@ class Player(GameObject):
 		self.lives = settings.MAX_PLAYER_LIVES
 		self.shields = settings.MAX_SHIELDS
 		self.rockets = settings.MAX_ROCKETS
+		self.score = 0
 		#extra info
 		self.mouse_info = { 'x':0, 'y':0 }
 

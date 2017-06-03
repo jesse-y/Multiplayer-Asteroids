@@ -118,6 +118,9 @@ function game_client() {
 			//if the player object is not the current player
 			if (entity.type == 'player' && entity.oid != gs.pid()) {
 				var ship_col = colours[entity.pid-1];
+				if (!entity.alive) {
+					continue;
+				}
 				if (frame.state.events.hasOwnProperty(entity.oid)) {
 					//if the object is hit show its hitting animation
 					render_shape(entity, shapes.player, '#ff0000', false, 2);
@@ -149,7 +152,7 @@ function game_client() {
 		}
 
 		//render predicted player
-		if (frame.hasOwnProperty('predicted_player')) {
+		if (frame.hasOwnProperty('predicted_player') && frame.state.entities[gs.pid()].alive) {
 			var pp = frame.predicted_player;
 			render_shape(pp, shapes.player, colours[pp.pid-1], false);
 			if (frame.state.entities[gs.pid()].invuln) {
@@ -234,12 +237,15 @@ function game_client() {
 		var width = ui_padding * 2 + dot_offset * (max_val-1) + dot_radius * 2;
 		var height = dot_radius * 2 + ui_padding * 2;
 		
+		//if the ui text is larger than its own ui dots, enlarge the box
+		//to fit the ui text and set width_padding to centre the ui dots
 		var width_padding = 0;
 		if (width < ui_text_width+10+ui_padding) {
 			width_padding = (ui_text_width+10+ui_padding) - width;
 			width = ui_text_width+10+ui_padding;
 		}
 
+		//centre the ui text above the rectangle
 		var ui_text_start = width/2 - ui_text_width/2;
 		var ui_centre = height / 2;
 
