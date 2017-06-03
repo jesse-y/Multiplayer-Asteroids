@@ -30,6 +30,15 @@ class Asteroid(GameObject):
 		return 'asteroid_{}_type_{}_oid_{}_hp={}'.format(
 			self.size_names.get(self.get_size(self.ast_id)), self.ast_id, self.oid, self.hp)
 
+	def get_score(self):
+		#get score on death
+		size = self.get_size(self.ast_id)
+		return {
+			self.SMALL  : settings.SCR_KILL_AST_SML,
+			self.MEDIUM : settings.SCR_KILL_AST_MED,
+			self.LARGE  : settings.SCR_KILL_AST_LRG
+		}.get(size, 0)
+
 	def get_speed(self, ast_id=None):
 		if ast_id is None:
 			ast_id = self.ast_id
@@ -66,8 +75,8 @@ class Asteroid(GameObject):
 
 	def split(self, oidm):
 		objects = {}
-		#a large asteroid splits into two medium asteroids and has a 50% chance to spawn a powerup
-		#a medium asteroid splits into three small asteroids and has a 5% change to spawn a powerup
+		#a large asteroid splits into two medium asteroids.
+		#a medium asteroid splits into three small asteroids.
 		if self.get_size(self.ast_id) == self.MEDIUM:
 			max_ast = 3
 			low, high = 1, 3

@@ -221,8 +221,6 @@ class Player(GameObject):
 		self.lives -= 1
 		if self.lives < 0:
 			self.out_of_lives = True
-		#remove the player from the gameobject area
-		self.pos = Position(5000,5000)
 
 	def add_shield(self):
 		self.last_regen = time.time()
@@ -237,6 +235,7 @@ class Player(GameObject):
 			'alive':self.alive,
 			'invuln':self.invulnerable,
 			'rockets':self.rockets,
-			'lives':self.lives
+			'lives':self.lives,
+			'score':self.score
 		})
 		return entity

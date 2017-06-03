@@ -214,8 +214,12 @@ function game_client() {
 		if (frame.state.entities.hasOwnProperty(gs.pid())) {
 			shields = frame.state.entities[gs.pid()].shields;
 			n_rockets = frame.state.entities[gs.pid()].rockets;
-
 		}
+
+		ctx.font = '30px MunroSmall';
+		ctx.fillStyle = '#ffffff';
+		var score_text = String(gs.score());
+		ctx.fillText(score_text, world_x/2-ctx.measureText(score_text).width/2, 32);
 
 		dot_ui(shields, 3, 'SHIELDS', [15,15], '#53d7e2');
 		dot_ui(n_rockets, 2, 'ROCKETS', [105,15], '#ff9823');
@@ -288,6 +292,8 @@ function game_client() {
 	}
 
 	function text_height(text, font, size) {
+		//horrible document hacking to get text height.. why isn't there an
+		//api for this?
 		var temp_div = document.createElement('div');
 		var temp_text = document.createTextNode(text);
 

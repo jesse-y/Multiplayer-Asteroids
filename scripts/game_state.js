@@ -10,6 +10,7 @@ function game_state() {
 	var pid;
 	var col_id;
 	var lives;
+	var score;
 	var player;
 	var alive;
 
@@ -30,6 +31,9 @@ function game_state() {
 	}
 	this.col_id = function() {
 		return col_id;
+	}
+	this.score = function() {
+		return score;
 	}
 
 	this.init = function(player_id, start_time, world) {
@@ -207,6 +211,7 @@ function game_state() {
 		//set variables for ui
 		lives = from.state.entities[pid].lives;
 		col_id = from.state.entities[pid].pid;
+		score = from.state.entities[pid].score;
 
 		return interp;
 	}

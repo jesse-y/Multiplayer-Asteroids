@@ -23,5 +23,6 @@ class IdManager:
 	def release_id(self, new_id):
 		if new_id == -1:
 			print('attempted to release invalid id! ({})'.format(new_id))
+			raise Exception
 		print('releasing id: {}. last_id={}, max_id={}, ids={}'.format(new_id, self.last_id, self.max_id, self.ids))
 		self.ids.append(new_id)

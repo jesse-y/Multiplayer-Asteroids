@@ -1,3 +1,4 @@
+import settings
 from game_object import GameObject
 
 class Bullet(GameObject):
@@ -36,10 +37,12 @@ class Bullet(GameObject):
 				pass
 			elif self.shape.colliding(other.shape) and self.pid != other.pid:
 				other.hit()
+				game.players[self.pid].score += settings.SCR_HIT_BULLET
 				to_del[self.oid] = True
 				evt[other.oid] = ['hit', 'player', other.pos.x, other.pos.y]
 				evt[self.oid] = ['hit', 'bullet', self.pos.x, self.pos.y]
 				if other.destroyed():
+					game.players[self.pid].score += settings.SCR_KILL_PLAYER
 					evt[other.oid] = ['dead', 'player', other.pos.x, other.pos.y, other.pid]
 					other.kill()
 				elif other.no_shields():
@@ -51,8 +54,10 @@ class Bullet(GameObject):
 				evt[self.oid] = ['hit', 'bullet', self.pos.x, self.pos.y]
 				evt[other.oid] = ['hit', 'ast'];
 				other.hit()
+				game.players[self.pid].score += settings.SCR_HIT_BULLET
 				to_del[self.oid] = True
 				if other.destroyed():
+					game.players[self.pid].score += other.get_score()
 					to_del[other.oid] = True
 					ent.update(other.split(game.oidm))
 					evt[other.oid] = ['dead', 'ast', other.pos.x, other.pos.y]

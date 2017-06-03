@@ -78,6 +78,7 @@ class Rocket(GameObject):
 			elif other.pid == self.owner_id:
 				pass
 			elif self.shape.colliding(other.shape):
+				game.players[self.owner_id].score += settings.SCR_HIT_ROCKET + settings.SCR_KILL_PLAYER
 				evt[self.oid] = ['hit', 'rocket', self.pos.x, self.pos.y, self.owner_id]
 				evt[other.oid] = ['dead', 'player', other.pos.x, other.pos.y, other.pid]
 				to_del[self.oid] = True
@@ -90,7 +91,9 @@ class Rocket(GameObject):
 				evt[other.oid] = ['hit', 'ast'];
 				other.hit(dmg=4)
 				to_del[self.oid] = True
+				game.players[self.owner_id].score += settings.SCR_HIT_ROCKET
 				if other.destroyed():
+					game.players[self.owner_id].score += other.get_score()
 					to_del[other.oid] = True
 					ent.update(other.split(game.oidm))
 					evt[other.oid] = ['dead', 'ast', other.pos.x, other.pos.y]
