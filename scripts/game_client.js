@@ -104,6 +104,35 @@ function game_client() {
 		gs.state_update(msg);
 	}
 
+	this.game_over = function(msg) {
+		paused = true;
+		ih.stop();
+		render_background();
+
+
+		console.log('GAME OVER!!!', msg);
+		ctx.fillStyle = '#ffffff';
+		ctx.font = '40px MunroSmall';
+		var x_align = world_x/2-ctx.measureText('GAME OVER').width/2;
+		var y_align = Math.round(world_y * 0.1);
+		console.log(x_align, y_align);
+		var text_offset = 40;
+		ctx.fillText('GAME OVER', x_align, y_align);
+
+		ctx.fillStyle = '#ffffff';
+		ctx.font = '30px MunroSmall';
+		y_align += 100;
+		for (var i = 0; i < msg.length; i += 3) {
+			y_align += text_offset;
+			var player_id = msg[i];
+			var player_username = msg[i+1];
+			var player_score = msg[i+2];
+
+			var entry_text = player_id + ' ' + player_username + ' ' + player_score;
+			ctx.fillText(entry_text, x_align, y_align);
+		}
+	}
+
 	function render(frame, dt) {
 		//render background
 		render_background();

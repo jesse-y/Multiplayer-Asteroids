@@ -186,7 +186,9 @@ function message_handler(e) {
 			case window.netm.MSG_G_STATE:
 				window.GC.state_update(msg[1]);
 				break;
-
+			case window.netm.MSG_GAMEOVER:
+				window.GC.game_over(msg.slice(1));
+				break;
 			default:
 				console.log('failed to recognise nm code: '+msg); break;
 		}

@@ -69,7 +69,7 @@ async def manage_players(app):
 	while True:
 		player = await app['searching'].get()
 
-		if game is not None and game.finished:
+		if game is not None and (game.finished or game.game_over):
 			game = None
 
 		if game is None:

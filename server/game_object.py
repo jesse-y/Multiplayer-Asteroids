@@ -1,7 +1,7 @@
 import settings
 
 from math import sin, cos, floor, sqrt
-from datatypes import Position, Vector, Rectangle
+from datatypes import Position, Vector
 from settings import WORLD_X, WORLD_Y, PLAYER_SPEED, BULLET_SPEED
 from shape import Shape
 

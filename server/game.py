@@ -7,7 +7,7 @@ import itertools
 from collections import deque
 
 from player import Player
-from datatypes import MSG_JOIN, MSG_QUIT, MSG_ERROR, MSG_START, MSG_G_STATE
+from datatypes import MSG_JOIN, MSG_QUIT, MSG_ERROR, MSG_START, MSG_G_STATE, MSG_GAMEOVER
 from datatypes import Position
 from asteroid import Asteroid
 from id_manager import IdManager
@@ -23,6 +23,7 @@ class Game:
 		self.ready = False
 		self.finished = False
 		self.running = False
+		self.game_over = False
 
 		self.last_time = time.time()
 
@@ -87,7 +88,7 @@ class Game:
 			self.notify_single(ingame_player, [MSG_QUIT, quitter.user.uid])
 
 	def need_players(self):
-		if settings.MAX_PLAYERS - len(self.players) > 0:
+		if settings.MAX_PLAYERS - len(self.players) > 1 and not self.game_over:
 			return True
 		else:
 			return False
@@ -96,12 +97,14 @@ class Game:
 		self.create_world()
 		print('{}>start: sending start messages to all players'.format(self))
 		for player in self.players.values():
+			#select default starting value
 			self.resume(player)
 		self.running = True
 
-	def resume(self, player):
+	def resume(self, player, location=None, angle=None):
 		print('{}>starting game for {}'.format(self, player))
-		location, angle = self.pick_random_location()
+		if location is None or angle is None:
+			location, angle = self.pick_random_location()
 		player.spawn(location, angle)
 		self.notify_single(player, [MSG_START, player.oid, self.game_time, 
 				{ 'x': settings.WORLD_X, 'y':settings.WORLD_Y, 'client_rate': settings.CLIENT_RATE }])
@@ -209,9 +212,20 @@ class Game:
 		self.events = {}
 		return msg
 
+	def is_game_over(self):
+		if all([p.out_of_lives for p in self.players.values()]):
+			self.game_over = True
+			scoreboard = []
+			for player in sorted(self.players.values(), key=lambda x: x.score, reverse=True):
+				scoreboard += [player.pid, player.user.username, player.score]
+			print('{} complete, scoreboard={}'.format(self, scoreboard))
+			self.notify_all([MSG_GAMEOVER] + scoreboard)
+
 	def next_frame(self):
-		if self.finished:
+		if self.finished or self.game_over:
 			return
+
+		self.is_game_over()
 
 		dt = time.time() - self.last_time
 		self.game_time += dt
