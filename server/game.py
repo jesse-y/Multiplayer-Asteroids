@@ -249,7 +249,7 @@ class Game:
 		self.send_ticker += 1
 		if self.send_ticker % self.send_rate == 0:
 			msg = self.build_state()
-			self.notify_all([MSG_G_STATE, {'timestamp':self.game_time, 'state':msg}])
+			self.notify_all([MSG_G_STATE, {'timestamp':round(self.game_time, 4), 'state':msg}])
 
 	def out_of_bounds(self, entity):
 		if (entity.pos.x < -50                   or \

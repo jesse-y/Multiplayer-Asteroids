@@ -81,7 +81,7 @@ class GameObject:
 		return {
 			'x':self.pos.x,
 			'y':self.pos.y,
-			'a':self.angle,
+			'a':round(self.angle, 4),
 			'oid':self.oid,
 			'type':self.type
 		}
