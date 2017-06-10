@@ -80,6 +80,9 @@ class Game:
 		if len(self.players) < 1:
 			self.finished = True
 			return
+		elif len(self.players) < 2:
+			self.complete_game()
+			return
 		else:
 			print('{}>needs {} more players'.format(self, settings.MAX_PLAYERS-len(self.players)))
 
@@ -88,7 +91,7 @@ class Game:
 			self.notify_single(ingame_player, [MSG_QUIT, quitter.user.uid])
 
 	def need_players(self):
-		if settings.MAX_PLAYERS - len(self.players) > 1 and not self.game_over:
+		if settings.MAX_PLAYERS - len(self.players) > 2 and not self.game_over:
 			return True
 		else:
 			return False
@@ -213,13 +216,16 @@ class Game:
 		return msg
 
 	def is_game_over(self):
-		if all([p.out_of_lives for p in self.players.values()]):
-			self.game_over = True
-			scoreboard = []
-			for player in sorted(self.players.values(), key=lambda x: x.score, reverse=True):
-				scoreboard += [player.pid, player.user.username, player.score]
-			print('{} complete, scoreboard={}'.format(self, scoreboard))
-			self.notify_all([MSG_GAMEOVER] + scoreboard)
+		if sum([p.out_of_lives for p in self.players.values()])>=settings.MAX_PLAYERS-1:
+			self.complete_game()
+
+	def complete_game(self):
+		self.game_over = True
+		scoreboard = []
+		for player in sorted(self.players.values(), key=lambda x: x.score, reverse=True):
+			scoreboard += [player.pid, player.user.username, player.score]
+		print('{} complete, scoreboard={}'.format(self, scoreboard))
+		self.notify_all([MSG_GAMEOVER] + scoreboard)
 
 	def next_frame(self):
 		if self.finished or self.game_over:
