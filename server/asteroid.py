@@ -2,6 +2,7 @@ import random
 import math
 import settings
 from game_object import GameObject
+from powerup import PowerUp
 
 class Asteroid(GameObject):
 
@@ -80,12 +81,15 @@ class Asteroid(GameObject):
 		if self.get_size(self.ast_id) == self.MEDIUM:
 			max_ast = 3
 			low, high = 1, 3
+			powerup_chance = 0.1
 		elif self.get_size(self.ast_id) == self.LARGE:
 			max_ast = 2
 			low, high = 4, 6
+			powerup_chance = 0.5
 		else:
 			max_ast = 0
 			low, high = 0, 1
+			powerup_chance = 0
 
 		num_dirs = 12
 		dirs = random.sample(range(num_dirs), max_ast)
@@ -99,6 +103,16 @@ class Asteroid(GameObject):
 				ast_id=new_id
 			)
 			objects.update({ oid: ast })
+
+		if random.random() < powerup_chance:
+			oid = oidm.assign_id()
+			powerup = PowerUp(
+				pos=self.pos,
+				angle=0.,
+				oid=oid,
+				obj_type='powerup'
+			)
+			objects.update({ oid: powerup})
 		return objects
 
 	def update(self, dt, game):

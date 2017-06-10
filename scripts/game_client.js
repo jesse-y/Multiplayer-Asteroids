@@ -44,7 +44,9 @@ function game_client() {
 		asteroid_6: [[14,33], [28,2], [35,-30], [-10,-17], [-8,10]],
 		asteroid_7: [[33,-2], [25,-30], [-15,-27], [-42,-6], [-13,31], [15,40]],
 		asteroid_8: [[36,-1], [12,-43], [-21,-37], [-34,-1], [-23,29], [26,38]],
-		asteroid_9: [[38,-6], [21,-30], [-14,-35], [-33,5], [-28,36], [18,26]]
+		asteroid_9: [[38,-6], [21,-30], [-14,-35], [-33,5], [-28,36], [18,26]],
+		powerup_outer: [[15,15],[15,-15], [-15,-15], [-15,15]],
+		powerup_inner: [[0,-9], [-5,7], [5,7]]
 	}
 
 	//all vfx objects here
@@ -177,6 +179,10 @@ function game_client() {
 					vfx_items.push(vfx.rocket_trail(entity.oid));
 					uniq_vfx[entity.oid] = true;
 				}
+			}
+			if (entity.type == 'powerup') {
+				render_shape(entity, shapes.powerup_outer, '#ffeb54', false);
+				render_shape(entity, shapes.powerup_inner, '#f78827', false)
 			}
 		}
 

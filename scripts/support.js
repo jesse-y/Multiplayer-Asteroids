@@ -23,6 +23,7 @@
 		'MSG_MOVE' : 'nm03',
 		'MSG_G_STATE' : 'nm04',
 		'MSG_START' : 'nm05',
-		'MSG_GAMEOVER': 'nm06'
+		'MSG_GAMEOVER': 'nm06',
+		'MSG_RESTART': 'nm07'
 	}
 })();

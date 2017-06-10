@@ -29,13 +29,18 @@ ROCKET_MAX_SPEED = 1000
 ROCKETS_PER_SECOND = 2
 ROCKET_RECHARGE_SPEED = 3
 
+PWRUP_SPD_MIN = 80
+PWRUP_SPD_MAX = 100
+POWERUP_ALIVE_TIME = 10
+
 #score settings
 SCR_HIT_BULLET = 10
 SCR_HIT_ROCKET = 40
 SCR_KILL_AST_LRG = 75
 SCR_KILL_AST_MED = 85
 SCR_KILL_AST_SML = 100
-SCR_KILL_PLAYER = 160
+SCR_KILL_PLAYER = 260
+SCR_GET_POWERUP = 100
 
 #app settings
 MAX_USERS = 100
@@ -62,6 +67,7 @@ obj_type_shape = {
 	'asteroid_7': [[33,-2], [25,-30], [-15,-27], [-42,-6], [-13,31], [15,40]],
 	'asteroid_8': [[36,-1], [12,-43], [-21,-37], [-34,-1], [-23,29], [26,38]],
 	'asteroid_9': [[38,-6], [21,-30], [-14,-35], [-33,5], [-28,36], [18,26]],
+	'powerup': [[15,15],[15,-15], [-15,-15], [-15,15]]
 }
 
 ast_speed_min = {
