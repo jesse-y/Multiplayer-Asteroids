@@ -33,6 +33,7 @@ class Game:
 		#game state
 		self.entities = {}
 		self.events = {}
+		self.scoreboard = []
 
 		#misc game stats
 		self.game_time = 0.
@@ -83,7 +84,7 @@ class Game:
 		if len(self.players) < 1:
 			self.finished = True
 			return
-		elif len(self.players) < 2:
+		elif len(self.players) < 2 and not self.game_over:
 			#force game over:
 			self.game_over_time = time.time() - settings.GAME_COMPLETE_DELAY - 1
 			self.complete_game()
@@ -221,7 +222,8 @@ class Game:
 		return msg
 
 	def is_game_over(self):
-		if sum([p.out_of_lives for p in self.players.values()])>=settings.MAX_PLAYERS-1:
+		#game is over when there is one player remaining who is not out of lives
+		if sum([p.out_of_lives for p in self.players.values()]) >= settings.MAX_PLAYERS-1:
 			self.complete_game()
 
 	def complete_game(self):
@@ -246,10 +248,10 @@ class Game:
 		dt = time.time() - self.last_time
 		self.game_time += dt
 
-		#send update frames only if the game is still in progress
-		#otherwise, re-send the last frame until the game complete delay is finished
 		self.is_game_over()
 
+		#only update the game state when the game is not frozen. the game is only
+		#frozen once there is a winning player.
 		if not self.freezed:
 			self.update_entities(dt)
 			self.check_collisions()

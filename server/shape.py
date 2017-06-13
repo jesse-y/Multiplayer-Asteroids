@@ -10,6 +10,8 @@ class Shape:
 		if type(self.centre) == list: self.centre = Position(self.centre[0], self.centre[1])
 
 		self.points = np.array(points)
+		self.rotation_matrix = np.array([[cos(0), -sin(0)], 
+										 [sin(0), cos(0)]])
 
 	def update(self, centre, angle):
 		self.centre = centre
@@ -18,12 +20,17 @@ class Shape:
 	def world_points(self):
 		#add world centre coordinates to each point and rotate by its angle
 		cosa, sina = cos(self.angle), sin(self.angle)
-		rotation_matrix = np.array([[cosa, -sina],[sina, cosa]])
-		return (self.points.dot(rotation_matrix) + [self.centre.x, self.centre.y])
+		#rotation_matrix = np.array([[cosa, -sina],[sina, cosa]])
+		self.rotation_matrix[0,0] = cosa
+		self.rotation_matrix[0,1] = -sina
+		self.rotation_matrix[1,0] = sina
+		self.rotation_matrix[1,1] = cosa
+		return (self.points.dot(self.rotation_matrix) + [self.centre.x, self.centre.y])
 
 	def rotate(self, angle):
 		#rotate base points about its origin
 		cosa, sina = cos(angle), sin(angle)
+		self.rotation_matrix[0,1]
 		rotation_matrix = np.array([[cosa, -sina], [sina, cosa]])
 		self.points = self.points.dot(rotation_matrix)
 
