@@ -84,6 +84,8 @@ class Game:
 			self.finished = True
 			return
 		elif len(self.players) < 2:
+			#force game over:
+			self.game_over_time = time.time() - settings.GAME_COMPLETE_DELAY - 1
 			self.complete_game()
 			return
 		else:
@@ -91,7 +93,7 @@ class Game:
 
 		print('{}>disconnect_player: notify all players that {} disconnected'.format(self, quitter))
 		for ingame_player in self.players.values():
-			self.notify_single(ingame_player, [MSG_QUIT, quitter.user.uid])
+			self.notify_single(ingame_player, [MSG_QUIT, quitter.user.uid, quitter.user.username])
 
 	def need_players(self):
 		if settings.MAX_PLAYERS - len(self.players) > 2 and not self.game_over:
