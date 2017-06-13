@@ -24,6 +24,7 @@
 		'MSG_G_STATE' : 'nm04',
 		'MSG_START' : 'nm05',
 		'MSG_GAMEOVER': 'nm06',
-		'MSG_RESTART': 'nm07'
+		'MSG_RESTART': 'nm07',
+		'MSG_STOP_GAME': 'nm08'
 	}
 })();

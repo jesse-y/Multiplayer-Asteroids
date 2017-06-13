@@ -106,6 +106,12 @@ function game_client() {
 		gs.state_update(msg);
 	}
 
+	this.stop_game = function() {
+		//stop the client sending input to the server
+		ih.stop();
+		ih.pop_history();
+	}
+
 	this.game_over = function(msg) {
 		paused = true;
 		ih.stop();
@@ -123,14 +129,15 @@ function game_client() {
 
 		ctx.fillStyle = '#ffffff';
 		ctx.font = '30px MunroSmall';
-		y_align += 100;
+		y_align += 80;
+		x_align -= ctx.measureText('GAME').width;
 		for (var i = 0; i < msg.length; i += 3) {
 			y_align += text_offset;
 			var player_id = msg[i];
 			var player_username = msg[i+1];
 			var player_score = msg[i+2];
 
-			var entry_text = player_id + ' ' + player_username + ' ' + player_score;
+			var entry_text = player_id + '      ' + player_username + '      ' + player_score;
 			ctx.fillText(entry_text, x_align, y_align);
 		}
 	}
@@ -451,7 +458,11 @@ function game_client() {
 		ctx.fillStyle = '#D9D9D9';
 		ctx.fillRect(0,0,canvas.width, canvas.height);
 
+		vfx_items = [];
+		uniq_vfx = {};
+
 		ih.stop();
+		ih.pop_history();
 	};
 
 	this.reset_screen();	

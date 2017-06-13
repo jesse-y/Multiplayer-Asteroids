@@ -7,7 +7,7 @@ import itertools
 from collections import deque
 
 from player import Player
-from datatypes import MSG_JOIN, MSG_QUIT, MSG_ERROR, MSG_START, MSG_G_STATE, MSG_GAMEOVER
+from datatypes import MSG_JOIN, MSG_QUIT, MSG_ERROR, MSG_START, MSG_G_STATE, MSG_GAMEOVER, MSG_STOP_GAME
 from datatypes import Position
 from asteroid import Asteroid
 from id_manager import IdManager
@@ -24,6 +24,7 @@ class Game:
 		self.finished = False
 		self.running = False
 		self.game_over = False
+		self.freezed = False
 
 		self.last_time = time.time()
 
@@ -33,7 +34,9 @@ class Game:
 		self.entities = {}
 		self.events = {}
 
+		#misc game stats
 		self.game_time = 0.
+		self.game_over_time = None
 		self.send_ticker = 0
 		self.send_rate = settings.GAME_SPEED/settings.SEND_RATE
 
@@ -220,30 +223,40 @@ class Game:
 			self.complete_game()
 
 	def complete_game(self):
-		self.game_over = True
-		scoreboard = []
-		for player in sorted(self.players.values(), key=lambda x: x.score, reverse=True):
-			scoreboard += [player.pid, player.user.username, player.score]
-		print('{} complete, scoreboard={}'.format(self, scoreboard))
-		self.notify_all([MSG_GAMEOVER] + scoreboard)
+		if self.game_over_time is None:
+			self.game_over_time = time.time()
+			self.freezed = True
+			self.notify_all([MSG_STOP_GAME])
+		elif time.time() - self.game_over_time > settings.GAME_COMPLETE_DELAY:
+			self.game_over = True
+			scoreboard = []
+			for player in sorted(self.players.values(), key=lambda x: x.score, reverse=True):
+				scoreboard += [player.pid, player.user.username, player.score]
+			print('{} complete, scoreboard={}'.format(self, scoreboard))
+			self.notify_all([MSG_GAMEOVER] + scoreboard)
 
 	def next_frame(self):
-		if self.finished or self.game_over:
+		#skip handling a new frame if the game is finished, or we are waiting
+		#for the game_over delay to finish.
+		if self.game_over or self.finished:
 			return
-
-		self.is_game_over()
 
 		dt = time.time() - self.last_time
 		self.game_time += dt
 
-		self.update_entities(dt)
-		self.check_collisions()
+		#send update frames only if the game is still in progress
+		#otherwise, re-send the last frame until the game complete delay is finished
+		self.is_game_over()
 
-		if random.random() < 1-.995:
-			self.spawn_asteroid()
+		if not self.freezed:
+			self.update_entities(dt)
+			self.check_collisions()
 
-		for player in self.players.values():
-			self.spawn_players()
+			if random.random() < 1-.995:
+				self.spawn_asteroid()
+
+			for player in self.players.values():
+				self.spawn_players()
 
 		self.last_time = time.time()
 		self.send_ticker += 1
