@@ -34,7 +34,8 @@ function connect_screen() {
 			if (document.getElementById('local_checkbox').checked) {
 				ws_url = 'ws://localhost:8080/connect';
 			} else {
-				ws_url = 'ws://hawkleon.com:8080/connect';
+				//ws_url = 'ws://hawkleon.com:8080/connect';
+				ws_url = 'ws://172.104.62.118/connect';
 			}
 			ws = new WebSocket(ws_url);
 			ws.onopen = open_handler;
