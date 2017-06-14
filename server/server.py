@@ -155,4 +155,4 @@ if __name__ == '__main__':
 	app.router.add_route('GET', '/connect', wshandler)
 	app.router.add_route('GET', '/', handle)
 
-	web.run_app(app, host='localhost', port=8080)
+	web.run_app(app, port=8080)
