@@ -33,7 +33,6 @@ class Game:
 		#game state
 		self.entities = {}
 		self.events = {}
-		self.scoreboard = []
 
 		#misc game stats
 		self.game_time = 0.
@@ -89,7 +88,7 @@ class Game:
 			self.game_over_time = time.time() - settings.GAME_COMPLETE_DELAY - 1
 			self.complete_game()
 			return
-		else:
+		elif not self.game_over:
 			print('{}>needs {} more players'.format(self, settings.MAX_PLAYERS-len(self.players)))
 
 		print('{}>disconnect_player: notify all players that {} disconnected'.format(self, quitter))
@@ -242,7 +241,7 @@ class Game:
 	def next_frame(self):
 		#skip handling a new frame if the game is finished, or we are waiting
 		#for the game_over delay to finish.
-		if self.game_over or self.finished:
+		if self.finished or self.game_over:
 			return
 
 		dt = time.time() - self.last_time

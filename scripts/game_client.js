@@ -26,7 +26,6 @@ function game_client() {
 
 	//default ship colours
 	var colours = ['#2176ff', '#379e3a', '#efe639', '#f7411d', '#cc00cc'];
-	var shield_cols = ['#66a1ff', '#8ed790', '#f3eb59', '#fa836b', '#ff33ff'];
 
 	//default object shapes
 	var shapes = {

@@ -12,6 +12,13 @@
     cursor:default;
 }
 
+* {
+	transition: all .2s ease-in;
+	-webkit-transition: all .2s ease-in;
+	-moz-transition: all .2s ease-in;
+	-o-transition: all .2s ease-in;
+}
+
 #viewport {
 	width: 100%;
 	height: 100%;
@@ -41,4 +48,27 @@
 	left: 50%;
 	transform: translate(-50%);
 	display: none;
+}
+
+#game_over_screen {
+	position: absolute;
+	display: none;
+	top: 0%;
+	left: 0%;
+	width: 100%;
+	height: 100%;
+}
+
+#game_over_screen>#gos_btn_quit {
+	position: absolute;
+	top: 80%;
+	left: 20%;
+	transform: translate(-50%);
+}
+
+#game_over_screen>#gos_btn_replay {
+	position: absolute;
+	top: 80%;
+	left:80%;
+	transform: translate(-50%);
 }

@@ -279,7 +279,6 @@ function visual_effects(_ctx) {
 	}
 
 	//PRESET VFX OBJECTS -------------------------------------------------------------//
-
 	this.explosion_small = function(position, colour) {
 		return new vfx_obj.emitter(position, 10, 40, 2, 0.33, colour);
 	}

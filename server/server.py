@@ -7,7 +7,7 @@ import traceback
 
 import settings
 from id_manager import IdManager
-from datatypes import User, MSG_ERROR, MSG_JOIN, MSG_MOVE
+from datatypes import User, MSG_ERROR, MSG_JOIN, MSG_MOVE, MSG_RESTART
 from player import Player
 from game_object import GameObject
 from game import Game
@@ -40,6 +40,16 @@ async def wshandler(request):
 			data = json.loads(msg.data)
 			if type(data) != list:
 				continue
+
+			if player and player in app['in_game'] and data[0] == MSG_RESTART:
+				#remove player from in_game list
+				app['in_game'][player].disconnect_player(player)
+				del app['in_game'][player]
+				#reinitialize player's gameobject
+				player = Player(player.user, GameObject(obj_type='player'))
+				#add player back to matchmaking queue
+				app['searching'].put_nowait(player)
+
 			#update moves if the player is ingame
 			if player and player in app['in_game'] and data[0] == MSG_MOVE:
 				player.input(data[1:])

@@ -10,6 +10,7 @@ window.CS = new connect_screen();
 window.GS = new game_screen();
 window.LS = new lobby_screen();
 window.GC = new game_client();
+window.GO = new game_over_screen();
 
 function connect_screen() {
 	this.init = function() {
@@ -152,6 +153,47 @@ function lobby_screen() {
 	this.init();
 }
 
+function game_over_screen() {
+	this.init = function() {
+		var gos_div = document.createElement('div');
+		gos_div.id = 'game_over_screen';
+
+		var gos_quit_button = document.createElement('button');
+		gos_quit_button.id = 'gos_btn_quit';
+		gos_quit_button.appendChild(document.createTextNode('QUIT'));
+		gos_quit_button.addEventListener('click', function (e) {
+			if (ws) {
+				ws.close();
+				ws = null;
+			}
+			window.print_msg('status', 'disconnected');
+			window.GC.reset_screen();
+			window.LS.reset();
+			window.hide('lobby_screen');
+			window.show('connect_screen');
+			window.hide('game_over_screen');
+		});
+
+		var gos_replay_button = document.createElement('button');
+		gos_replay_button.id = 'gos_btn_replay';
+		gos_replay_button.appendChild(document.createTextNode('REPLAY'));
+		gos_replay_button.addEventListener('click', function (e) {
+			send_message([window.netm.MSG_RESTART]);
+			window.hide('game_over_screen');
+			window.LS.reset();
+			window.show('lobby_screen');
+			window.GC.reset_screen();
+		})
+
+		gos_div.appendChild(gos_quit_button);
+		gos_div.appendChild(gos_replay_button);
+
+		document.getElementById('app').appendChild(gos_div);
+	}
+
+	this.init();
+}
+
 function open_handler(e) {
 	window.print_msg('status', 'connected');
 
@@ -188,9 +230,11 @@ function message_handler(e) {
 				break;
 			case window.netm.MSG_GAMEOVER:
 				window.GC.game_over(msg.slice(1));
+				window.show('game_over_screen');
 				break;
 			case window.netm.MSG_STOP_GAME:
 				window.GC.stop_game();
+				break;
 			default:
 				console.log('failed to recognise nm code: '+msg); break;
 		}
