@@ -49,6 +49,7 @@ function connect_screen() {
 				window.LS.reset();
 				window.hide('lobby_screen');
 				window.show('connect_screen');
+				window.hide('game_over_screen');
 			};
 		});
 

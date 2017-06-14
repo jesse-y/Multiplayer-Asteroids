@@ -17,12 +17,12 @@ class IdManager:
 		else:
 			self.last_id += 1
 			result = self.last_id
-		print('assigning id: {}. last_id={}, max_id={}, ids={}'.format(result, self.last_id, self.max_id, self.ids))
+		#print('assigning id: {}. last_id={}, max_id={}, ids={}'.format(result, self.last_id, self.max_id, self.ids))
 		return result
 
 	def release_id(self, new_id):
 		if new_id == -1:
 			print('attempted to release invalid id! ({})'.format(new_id))
 			raise Exception
-		print('releasing id: {}. last_id={}, max_id={}, ids={}'.format(new_id, self.last_id, self.max_id, self.ids))
+		#print('releasing id: {}. last_id={}, max_id={}, ids={}'.format(new_id, self.last_id, self.max_id, self.ids))
 		self.ids.append(new_id)

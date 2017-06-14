@@ -135,6 +135,18 @@ def disconnect_player(app, player):
 	app['uidm'].release_id(player.user.uid)
 	if player in app['in_game']:
 		app['in_game'][player].disconnect_player(player)
+		#if a player leaves a game still in queue
+		if len(app['in_game'][player].players) < 1 and not app['in_game'][player].ready:
+			#get the game
+			game = app['in_game'][player]
+			#remove it from the games queue
+			print('game_{}> finished'.format(game.game_id))
+			del app['games'][game]
+			if game in app['non_full_games']:
+				#also delete it if it exists in non_full_games
+				del app[non_full_games][game]
+			#release this game's id
+			app['gidm'].release_id(game.game_id)
 		del app['in_game'][player]
 
 if __name__ == '__main__':

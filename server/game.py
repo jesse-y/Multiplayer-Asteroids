@@ -4,6 +4,7 @@ import time
 import random
 import math
 import itertools
+import sys
 from collections import deque
 
 from player import Player
@@ -39,6 +40,10 @@ class Game:
 		self.game_over_time = None
 		self.send_ticker = 0
 		self.send_rate = settings.GAME_SPEED/settings.SEND_RATE
+
+		#debug timers
+		self.debug_fps = 0.
+		self.debug_fps_num = 0
 
 	def __hash__(self):
 		return hash(self.game_id)
@@ -226,6 +231,7 @@ class Game:
 			self.complete_game()
 
 	def complete_game(self):
+		#this function will continually be run each frame until the GAME_COMPLETE_DELAY ticks over
 		if self.game_over_time is None:
 			self.game_over_time = time.time()
 			self.freezed = True
@@ -246,6 +252,16 @@ class Game:
 
 		dt = time.time() - self.last_time
 		self.game_time += dt
+
+		#determine how quickly the server is handling frames
+		self.debug_fps += dt
+		self.debug_fps_num += 1
+		if self.debug_fps >= 2:
+			avg_time = 1./(self.debug_fps / self.debug_fps_num)
+			sys.stdout.write('fps=%0.2d, number_frames=%d\r'%(avg_time, self.debug_fps_num))
+			sys.stdout.flush()
+			self.debug_fps = 0.
+			self.debug_fps_num = 0
 
 		self.is_game_over()
 
