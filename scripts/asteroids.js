@@ -17,6 +17,10 @@ function connect_screen() {
 		var cs_div = document.createElement('div');
 		cs_div.id = 'connect_screen';
 
+		var cs_title = document.createElement('span');
+		cs_title.id = 'title_span';
+		cs_title.appendChild(document.createTextNode('ASTEROIDS'));
+
 		var cs_textbox = document.createElement('input');
 		cs_textbox.id = 'username_textbox';
 		cs_textbox.type = 'text';
@@ -58,10 +62,15 @@ function connect_screen() {
 		cs_checkbox.type = 'checkbox';
 		cs_checkbox.checked = true;
 
+		var local_span = document.createElement('span');
+		local_span.id = 'local_span';
+		local_span.appendChild(document.createTextNode('LOCAL'));
+
+		cs_div.appendChild(cs_title);
 		cs_div.appendChild(cs_textbox);
 		cs_div.appendChild(cs_button);
 		cs_div.appendChild(cs_checkbox);
-		cs_div.appendChild(document.createTextNode('Local'));
+		cs_div.appendChild(local_span);
 
 		document.getElementById('app').appendChild(cs_div);
 	};

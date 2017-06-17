@@ -454,8 +454,8 @@ function game_client() {
 		canvas.height = world_y;
 		canvas.style.height = world_y + 'px';
 
-		ctx.fillStyle = '#D9D9D9';
-		ctx.fillRect(0,0,canvas.width, canvas.height);
+		//ctx.fillStyle = '#D9D9D9';
+		render_background();
 
 		vfx_items = [];
 		uniq_vfx = {};
@@ -464,5 +464,5 @@ function game_client() {
 		ih.pop_history();
 	};
 
-	this.reset_screen();	
+	this.reset_screen();
 }

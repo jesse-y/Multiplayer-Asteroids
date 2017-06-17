@@ -37,9 +37,65 @@
 
 #connect_screen {
 	position: absolute;
-	top: 50%;
+	width: 100%;
+	height: 100%;
+	font-family: MunroSmall;
+}
+
+#connect_screen>#title_span {
+	font-size: 50px;
+	color: white;
+	position: absolute;
+	top:10%;
 	left: 50%;
-	transform: translate(-50%, -50%);
+	transform: translateX(-50%);
+}
+
+#connect_screen>button {
+	position: absolute;
+	font-size: 30px;
+	font-family: MunroSmall;
+	padding-bottom: 5px;
+	top:50%;
+	left: 65%;
+	border: 2px solid;
+	border-radius: 5px;
+	outline:none;
+	background-color: transparent;
+	color: white;
+}
+
+#connect_screen>input {
+	position: absolute;
+	font-family: MunroSmall;
+	font-size: 30px;
+	top:50%;
+	left: 15%;
+	text-align: center;
+	color: white;
+	background-color: transparent;
+	border-bottom: 2px solid;
+	border-top: none;
+	border-left: none;
+	border-right: none;
+	outline: none;
+}
+
+#connect_screen>#local_checkbox {
+	position: absolute;
+	left: 50%;
+	top: 60%;
+	transform: translateX(-50%);
+	border: none;
+}
+
+#local_span {
+	position: absolute;
+	top: 58%;
+	left: 57%;
+	color: white;
+	font-size:30px;
+	transform: translateX(-50%);
 }
 
 #lobby_screen {
