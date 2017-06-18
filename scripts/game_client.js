@@ -25,7 +25,7 @@ function game_client() {
 	})();
 
 	//default ship colours
-	var colours = ['#2176ff', '#379e3a', '#efe639', '#f7411d', '#cc00cc'];
+	var colours = ['#2176ff', '#f7411d', '#379e3a', '#efe639', '#cc00cc'];
 
 	//default object shapes
 	var shapes = {
@@ -132,11 +132,11 @@ function game_client() {
 		x_align -= ctx.measureText('GAME').width;
 		for (var i = 0; i < msg.length; i += 3) {
 			y_align += text_offset;
-			var player_id = msg[i];
-			var player_username = msg[i+1];
+			var place = (i/3) + 1;
+			var player_username = (msg[i+1] + '                    ').slice(0,20);
 			var player_score = msg[i+2];
 
-			var entry_text = player_id + '      ' + player_username + '      ' + player_score;
+			var entry_text = place + '      ' + player_username + '      ' + player_score;
 			ctx.fillText(entry_text, x_align, y_align);
 		}
 	}

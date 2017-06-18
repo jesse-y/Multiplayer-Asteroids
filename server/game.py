@@ -88,7 +88,7 @@ class Game:
 		if len(self.players) < 1:
 			self.finished = True
 			return
-		elif len(self.players) < 2 and not self.game_over:
+		elif len(self.players) < 2 and not self.game_over and self.ready:
 			#force game over:
 			self.game_over_time = time.time() - settings.GAME_COMPLETE_DELAY - 1
 			self.complete_game()

@@ -96,6 +96,8 @@ function game_screen() {
 }
 
 function lobby_screen() {
+	const padding = '                    ';
+
 	var ls_table_id = 'lobby_table';
 	var uid_list = [];
 	var usernames_dict = {};
@@ -104,7 +106,7 @@ function lobby_screen() {
 		ls_div.id = 'lobby_screen';
 
 		var ls_h1 = document.createElement('h1');
-		ls_h1.appendChild(document.createTextNode('Finding Match ...'));
+		ls_h1.appendChild(document.createTextNode('Finding Match'));
 
 		var ls_table = this.create_table(uid_list);
 		ls_table.id = ls_table_id;
@@ -116,7 +118,6 @@ function lobby_screen() {
 	this.create_table = function(uid_list) {
 		var table = document.createElement('table');
 
-		table.border = '1px';
 		uid_list.forEach(function(entry) {
 			var tr = document.createElement('tr');
 			var td = document.createElement('td');
@@ -138,7 +139,7 @@ function lobby_screen() {
 	this.add_user = function(input) {
 		for (var i = 0; i < input.length; i += 2) {
 			var uid = input[i];
-			var username = input[i+1];
+			var username = (input[i+1] + padding).slice(0,20);
 			if (usernames_dict.hasOwnProperty(uid)) {
 				console.log('add_user function failed, key already exists: ' + uid);
 				continue;
