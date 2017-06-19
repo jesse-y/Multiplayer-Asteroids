@@ -94,7 +94,7 @@ function game_state() {
 	}
 
 	this.state_update = function(msg) {
-		window.print_msg('cbs', JSON.stringify(msg));
+		//window.print_msg('cbs', JSON.stringify(msg));
 		window.print_msg('status', 'new state: num_entities='+Object.keys(msg.state.entities).length + 
 						 ', msg length ~'+JSON.stringify(msg).length+' char');
 
