@@ -50,7 +50,7 @@ class Rocket(GameObject):
 		return {
 			'x':self.pos.x,
 			'y':self.pos.y,
-			'a':round(self.angle, 4),
+			'a':round(self.angle, 3),
 			'oid':self.oid,
 			'type':self.type,
 			'owner_id':self.owner_id,

@@ -116,28 +116,30 @@ function game_client() {
 		ih.stop();
 		render_background();
 
-
-		console.log('GAME OVER!!!', msg);
 		ctx.fillStyle = '#ffffff';
 		ctx.font = '40px MunroSmall';
 		var x_align = world_x/2-ctx.measureText('GAME OVER').width/2;
 		var y_align = Math.round(world_y * 0.1);
-		console.log(x_align, y_align);
 		var text_offset = 40;
 		ctx.fillText('GAME OVER', x_align, y_align);
 
 		ctx.fillStyle = '#ffffff';
 		ctx.font = '30px MunroSmall';
 		y_align += 80;
-		x_align -= ctx.measureText('GAME').width;
+
+		var place_align = x_align - ctx.measureText('GAME__').width;
+		var name_align = place_align + ctx.measureText('        ').width;
+		var score_align = name_align + ctx.measureText('                              ').width;
 		for (var i = 0; i < msg.length; i += 3) {
 			y_align += text_offset;
 			var place = (i/3) + 1;
-			var player_username = (msg[i+1] + '                    ').slice(0,20);
+			var player_username = (msg[i+1]);
 			var player_score = msg[i+2];
 
-			var entry_text = place + '      ' + player_username + '      ' + player_score;
-			ctx.fillText(entry_text, x_align, y_align);
+			//var entry_text = place + '      ' + player_username + '      ' + player_score;
+			ctx.fillText(place, place_align, y_align);
+			ctx.fillText(player_username, name_align, y_align);
+			ctx.fillText(player_score, score_align, y_align);
 		}
 	}
 
@@ -357,7 +359,6 @@ function game_client() {
 			thickness = 1;
 		}
 		ctx.lineWidth = thickness;
-
 
 		ctx.translate(state.x, state.y);
 		ctx.rotate(-state.a);

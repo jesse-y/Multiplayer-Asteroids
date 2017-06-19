@@ -15,7 +15,7 @@ class Bullet(GameObject):
 		return {
 			'x':self.pos.x,
 			'y':self.pos.y,
-			'a':round(self.angle, 4),
+			'a':round(self.angle, 3),
 			'oid':self.oid,
 			'type':self.type,
 			'pid':self.pid

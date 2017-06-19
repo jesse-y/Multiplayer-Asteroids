@@ -95,7 +95,8 @@ function game_state() {
 
 	this.state_update = function(msg) {
 		window.print_msg('cbs', JSON.stringify(msg));
-		window.print_msg('status', 'new state: num_entities='+Object.keys(msg.state.entities).length);
+		window.print_msg('status', 'new state: num_entities='+Object.keys(msg.state.entities).length + 
+						 ', msg length ~'+JSON.stringify(msg).length+' char');
 
 		var snapshot = parse(msg);
 		game_time = snapshot.timestamp;
@@ -161,7 +162,7 @@ function game_state() {
 	this.next_frame = function(dt) {
 		elapsed += dt;
 		if (elapsed > 1.0) {
-			window.print_msg('game_time', 'game_time='+Number(game_time).toFixed(2)+', fps='+Number(1/dt).toFixed(2));
+			window.print_msg('network', 'game_time='+Number(game_time).toFixed(2)+', fps='+Number(1/dt).toFixed(2));
 			elapsed = 0.0;
 		}
 

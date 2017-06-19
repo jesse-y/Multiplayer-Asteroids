@@ -57,7 +57,8 @@ async def wshandler(request):
 			#assign this websocket as a player and add to matchmaking queue
 			if not player:
 				if data[0] == MSG_JOIN:
-					player = new_player(app, data[1], ws)
+					username = data[1][:20] #only take the first 20 characters as the username
+					player = new_player(app, username, ws)
 			
 		elif msg.tp == web.MsgType.close or msg.tp == web.MsgType.error:
 			break

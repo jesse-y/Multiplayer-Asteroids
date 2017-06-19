@@ -277,11 +277,12 @@ class Game:
 			self.debug_fps = 0.
 			self.debug_fps_num = 0
 
+		#send snapshots periodically
 		self.last_time = time.time()
 		self.send_ticker += 1
 		if self.send_ticker % self.send_rate == 0:
 			msg = self.build_state()
-			self.notify_all([MSG_G_STATE, {'timestamp':round(self.game_time, 4), 'state':msg}])
+			self.notify_all([MSG_G_STATE, {'timestamp':round(self.game_time, 2), 'state':msg}])
 
 	def out_of_bounds(self, entity):
 		if (entity.pos.x < -50                   or \
