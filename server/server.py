@@ -1,10 +1,10 @@
+import argparse
 import asyncio
 from asyncio import Queue
 from aiohttp import web
 from collections import OrderedDict
 import json
 import traceback
-
 import settings
 from id_manager import IdManager
 from datatypes import User, MSG_ERROR, MSG_JOIN, MSG_MOVE, MSG_RESTART
@@ -150,8 +150,36 @@ def disconnect_player(app, player):
 		del app['in_game'][player]
 
 if __name__ == '__main__':
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-p', '--port', help='The port number the server will listen on', type=int)
+	parser.add_argument('-a', '--addr', help='TCP/IP host name for this server')
+	parser.add_argument('-s', '--setting', help='Manually override a setting found in settings.py. \
+						Usage: <SETTING_NAME> <VALUE>', nargs=2, action='append')
+
+	args = parser.parse_args()
+
+	if args.port:
+		listen_port = args.port
+	else:
+		listen_port = 8080
+
+	if args.addr:
+		listen_host = args.addr
+	else:
+		listen_host = '0.0.0.0'
+
+	if args.setting:
+		for name, value in args.setting:
+			if name not in dir(settings):
+				print('{} is not a valid setting in settings.py.'.format(name))
+				continue
+			try:
+				exec('settings.{} = {}'.format(name, value))
+				print('>>OVERRIDE SETTING: {} = {}'.format(name, value))
+			except:
+				print('Failed to override setting/value pair {}, {}'.format(name, value))
+
 	event_loop = asyncio.get_event_loop()
-	event_loop.set_debug(True)
 
 	app = web.Application()
 	
@@ -165,6 +193,6 @@ if __name__ == '__main__':
 	asyncio.ensure_future(manage_players(app))
 
 	app.router.add_route('GET', '/connect', wshandler)
-	app.router.add_route('GET', '/', handle)
+	#app.router.add_route('GET', '/', handle)
 
-	web.run_app(app, port=8080)
+	web.run_app(app, host=listen_host, port=listen_port)

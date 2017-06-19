@@ -253,16 +253,6 @@ class Game:
 		dt = time.time() - self.last_time
 		self.game_time += dt
 
-		#determine how quickly the server is handling frames
-		self.debug_fps += dt
-		self.debug_fps_num += 1
-		if self.debug_fps >= 2:
-			avg_time = 1./(self.debug_fps / self.debug_fps_num)
-			sys.stdout.write('fps=%0.2d, number_frames=%d\r'%(avg_time, self.debug_fps_num))
-			sys.stdout.flush()
-			self.debug_fps = 0.
-			self.debug_fps_num = 0
-
 		self.is_game_over()
 
 		#only update the game state when the game is not frozen. the game is only
@@ -276,6 +266,16 @@ class Game:
 
 			for player in self.players.values():
 				self.spawn_players()
+
+		#determine how quickly the server is handling frames
+		self.debug_fps += time.time() - self.last_time
+		self.debug_fps_num += 1
+		if self.debug_fps_num >= 20:
+			avg_time = 1./(self.debug_fps / self.debug_fps_num)
+			sys.stdout.write('fps=%0.2d, elapsed_time=%0.2f\r'%(avg_time, self.debug_fps))
+			sys.stdout.flush()
+			self.debug_fps = 0.
+			self.debug_fps_num = 0
 
 		self.last_time = time.time()
 		self.send_ticker += 1
