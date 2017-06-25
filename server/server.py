@@ -80,12 +80,18 @@ async def manage_players(app):
 	while True:
 		player = await app['searching'].get()
 
+		#discard the current selected game if it has finished
 		if game is not None and (game.finished or game.game_over):
 			game = None
 
-		if game is None:
+		while game is None:
 			if len(app['non_full_games']) != 0:
 				_, game = app['non_full_games'].popitem(False)
+				#if the selected game in non_full_games is finished discard this game
+				#and look for another, or create a new game
+				if game.finished or game.game_over:
+					game = None
+					continue
 			else:
 				gid = app['gidm'].assign_id()
 				game = Game(game_id=gid)

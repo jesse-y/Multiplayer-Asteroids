@@ -90,8 +90,8 @@
 			if (keys['SPACE']) {
 				commands.push('SPACE');
 			}
-			if (keys['F']) {
-				commands.push('F');
+			if (keys['V']) {
+				commands.push('V');
 			}
 			return commands;
 		}

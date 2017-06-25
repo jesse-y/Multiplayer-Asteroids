@@ -96,7 +96,7 @@ class Player(GameObject):
 			if move == 'SPACE':
 				self.use_ability = True
 				continue
-			if move == 'F':
+			if move == 'V':
 				self.fire_rocket = True
 				continue
 			try:
