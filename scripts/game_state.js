@@ -93,6 +93,8 @@ function game_state() {
 		})
 	}
 
+	var num_pings = 0;
+	var tot_pings = 0;
 	this.state_update = function(msg) {
 		//window.print_msg('cbs', JSON.stringify(msg));
 		window.print_msg('status', 'new state: num_entities='+Object.keys(msg.state.entities).length + 
@@ -117,6 +119,8 @@ function game_state() {
 				player.x = p.x;
 				player.y = p.y;
 				player.a = p.a;
+				//reset past_moves to prevent jittering on respawn
+				past_moves = [];
 			}
 			alive = true;
 		} else {
@@ -135,6 +139,9 @@ function game_state() {
 
 			var client_state = past_moves[index].state;
 			var server_state = snapshot.state.entities[pid];
+
+			tot_pings += Math.round((snapshot.timestamp-past_moves[index].timestamp)*1000)
+			num_pings += 1;
 
 			//calculate prediction errors. multiply by -1 to correct errors by addition
 			predict_err.x = (client_state.x - server_state.x) * -1;
@@ -158,12 +165,18 @@ function game_state() {
 		interp = clone(from);
 	}
 
-	var elapsed = 1.2;
+	var elapsed = 1.0;
 	this.next_frame = function(dt) {
 		elapsed += dt;
-		if (elapsed > 1.0) {
-			window.print_msg('network', 'game_time='+Number(game_time).toFixed(2)+', fps='+Number(1/dt).toFixed(2));
+		if (elapsed > 0.5) {
+			var avg_ping = Math.round(tot_pings / num_pings);
+			if (num_pings == 0) avg_ping = 0;
+			window.print_msg('network', 'game_time='+Number(game_time).toFixed(2)+
+							 ', fps='+Number(1/dt).toFixed(2)+
+							 ', ping='+avg_ping+'ms');
 			elapsed = 0.0;
+			tot_pings = 0;
+			num_pings = 0;
 		}
 
 		game_time += dt;

@@ -238,7 +238,6 @@ function game_client() {
 					vfx_items.push(vfx.noshield(player_oid, '#ffe100'));
 				}
 			}
-
 		}
 
 		//render effects

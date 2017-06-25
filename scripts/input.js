@@ -140,6 +140,7 @@ function input_handler() {
 
 		if (ws && ws.readyState === ws.OPEN) {
 			var move = {
+				'timestamp':Date.now(),
 				'cmd_id':cmd_id,
 				'commands':commands,
 				'mouseX':cx,

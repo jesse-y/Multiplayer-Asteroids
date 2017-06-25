@@ -9,17 +9,6 @@ from rocket import Rocket
 
 class Player(GameObject):
 
-	keymap = {
-		37:'LEFT',
-		65:'LEFT',
-		38:'UP',
-		87:'UP',
-		39:'RIGHT',
-		68:'RIGHT',
-		40:'DOWN',
-		83:'DOWN'
-	}
-
 	movemap = {
 		'UP'   : Vector(0,-1),
 		'DOWN' : Vector(0,1),
