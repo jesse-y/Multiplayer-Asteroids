@@ -222,6 +222,7 @@ class Player(GameObject):
 		self.alive = True
 		self.invulnerable = True
 		self.last_invuln = time.time()
+		self.powerups = 0
 		self.pos = Position(pos[0], pos[1])
 		self.angle = angle
 		self.shields = settings.MAX_SHIELDS

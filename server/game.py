@@ -17,6 +17,13 @@ from shape import Shape
 
 class Game:
 
+	start_pos = [
+		[0.15, 0.15], #top left corner
+		[0.85, 0.85], #bottom right corner
+		[0.15, 0.85], #bottom left corner
+		[0.85, 0.15]  #top right corner
+	]
+
 	def __init__(self, game_id=0):
 		self.game_id = game_id
 		self.pidm = IdManager(max_id=settings.MAX_PLAYERS)
@@ -72,7 +79,7 @@ class Game:
 		print('{}>join: sending player list to {}'.format(self, new_player))
 		self.notify_single(new_player, [MSG_JOIN, new_player.user.uid, new_player.user.username] + p_list)
 
-		if len(self.players) == settings.MAX_PLAYERS:
+		if len(self.players) == settings.MIN_PLAYERS:
 			self.ready = True
 
 	def disconnect_player(self, quitter):
@@ -101,17 +108,24 @@ class Game:
 			self.notify_single(ingame_player, [MSG_QUIT, quitter.user.uid, quitter.user.username])
 
 	def need_players(self):
-		if settings.MAX_PLAYERS - len(self.players) > 2 and not self.game_over:
-			return True
-		else:
-			return False
+		return (settings.MAX_PLAYERS - len(self.players) >= 2 and not self.game_over)
+
+	def create_world(self):
+		#for initialising starting state of the world
+		pass
 
 	def start(self):
 		self.create_world()
 		print('{}>start: sending start messages to all players'.format(self))
-		for player in self.players.values():
+
+		centre = [round(settings.WORLD_X/2), round(settings.WORLD_Y/2)]
+		for i, player in enumerate(self.players.values()):
 			#select default starting value
-			self.resume(player)
+			position = [round(settings.WORLD_X * self.start_pos[i][0]),
+						round(settings.WORLD_Y * self.start_pos[i][1])]
+			angle = math.atan2(centre[0]-position[0], centre[1]-position[1])
+
+			self.resume(player, location=position, angle=angle)
 		self.running = True
 
 	def resume(self, player, location=None, angle=None):
@@ -121,10 +135,6 @@ class Game:
 		player.spawn(location, angle)
 		self.notify_single(player, [MSG_START, player.oid, self.game_time, 
 				{ 'x': settings.WORLD_X, 'y':settings.WORLD_Y, 'client_rate': settings.CLIENT_RATE }])
-
-	def create_world(self):
-		#for initialising starting state of the world
-		pass
 
 	def update_entities(self, dt):
 		new_entities, new_events = {}, {}
