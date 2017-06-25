@@ -237,7 +237,7 @@ class Game:
 
 	def is_game_over(self):
 		#game is over when there is one player remaining who is not out of lives
-		if sum([p.out_of_lives for p in self.players.values()]) >= settings.MAX_PLAYERS-1:
+		if sum([p.out_of_lives for p in self.players.values()]) >= len(self.players)-1:
 			self.complete_game()
 
 	def complete_game(self):
