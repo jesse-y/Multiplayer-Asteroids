@@ -26,7 +26,7 @@ function game_client() {
 
 	//default ship colours
 	var colours = ['#2176ff', '#f7411d', '#379e3a', '#cc00cc', '#efe639'];
-	
+
 	//default object shapes
 	var shapes = {
 		player: [[0,20], [14,-14], [-14,-14]],
@@ -230,8 +230,15 @@ function game_client() {
 					uniq_vfx[player_oid] = true;
 					vfx_items.push(vfx.noshield(player_oid, colour));
 				}
+			} else if (action_code == 'get') {
+				var player_oid = event[2];
 
+				if (!uniq_vfx.hasOwnProperty(player_oid)) {
+					uniq_vfx[player_oid] = true;
+					vfx_items.push(vfx.noshield(player_oid, '#ffe100'));
+				}
 			}
+
 		}
 
 		//render effects

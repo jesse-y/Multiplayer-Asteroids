@@ -71,6 +71,7 @@ class PowerUp(GameObject):
 				else:
 					#additional points for getting a powerup at max capacity
 					other.score += settings.SCR_GET_POWERUP
+				evt[other.oid] = ['get', 'player', other.oid]
 				#other.invulnerable = True
 				#other.last_invuln = time.time()
 			return to_del, ent, evt
