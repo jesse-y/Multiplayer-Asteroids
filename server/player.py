@@ -40,6 +40,7 @@ class Player(GameObject):
 		#the player id is specific to each game the player is in
 		self.pid = pid
 		self.clicked = False
+		self.fire_rocket = False
 		self.use_ability = False
 		#command id processing for reconciliation
 		self.last_id = -1
@@ -61,6 +62,7 @@ class Player(GameObject):
 		self.lives = settings.MAX_PLAYER_LIVES
 		self.shields = settings.MAX_SHIELDS
 		self.rockets = settings.MAX_ROCKETS
+		self.powerups = 0
 		self.score = 0
 		#extra info
 		self.mouse_info = { 'x':0, 'y':0 }
@@ -93,6 +95,9 @@ class Player(GameObject):
 		for move in moves:
 			if move == 'SPACE':
 				self.use_ability = True
+				continue
+			if move == 'F':
+				self.fire_rocket = True
 				continue
 			try:
 				dx, dy = self.movemap.get(move)
@@ -144,7 +149,7 @@ class Player(GameObject):
 			bullets[oid] = bullet
 			self.last_shot = time.time()
 
-		if self.use_ability and (time.time() - self.last_rocket) > 1/settings.ROCKETS_PER_SECOND and self.rockets > 0:
+		if self.fire_rocket and (time.time() - self.last_rocket) > 1/settings.ROCKETS_PER_SECOND and self.rockets > 0:
 			oid = oidm.assign_id()
 
 			#find the player closest to the last known mouse position
@@ -168,6 +173,13 @@ class Player(GameObject):
 			rockets[rocket.oid] = rocket
 			self.rockets -= 1;
 			self.last_rocket = time.time()
+
+		self.fire_rocket = False
+
+		if self.use_ability and self.powerups > 0:
+			self.powerups -= 1
+			self.invulnerable = True
+			self.last_invuln = time.time()
 
 		self.use_ability = False
 
@@ -236,6 +248,7 @@ class Player(GameObject):
 			'invuln':self.invulnerable,
 			'rockets':self.rockets,
 			'lives':self.lives,
-			'score':self.score
+			'score':self.score,
+			'powerup':self.powerups
 		})
 		return entity

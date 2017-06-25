@@ -253,9 +253,11 @@ function game_client() {
 		//render hud
 		var shields = 0;
 		var n_rockets = 0;
+		var n_powerup = 0;
 		if (frame.state.entities.hasOwnProperty(gs.pid())) {
 			shields = frame.state.entities[gs.pid()].shields;
 			n_rockets = frame.state.entities[gs.pid()].rockets;
+			n_powerup = frame.state.entities[gs.pid()].powerup;
 		}
 
 		ctx.font = '30px MunroSmall';
@@ -265,6 +267,7 @@ function game_client() {
 
 		dot_ui(shields, 3, 'SHIELDS', [15,15], '#53d7e2');
 		dot_ui(n_rockets, 2, 'ROCKETS', [105,15], '#ff9823');
+		dot_ui(n_powerup, 1, 'INVULN', [190, 15], '#ffe100');
 		dot_ui(gs.lives(), 5, 'LIVES', [world_x-140,15], colours[gs.col_id()-1]);
 
 	}

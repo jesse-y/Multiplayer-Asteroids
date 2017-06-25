@@ -3,7 +3,8 @@
 	var mouse = {
 		x: 0,
 		y: 0,
-		clicked:false
+		clicked:false,
+		r_click:false
 	};
 
 	function setKey(event, status) {
@@ -88,6 +89,9 @@
 			}
 			if (keys['SPACE']) {
 				commands.push('SPACE');
+			}
+			if (keys['F']) {
+				commands.push('F');
 			}
 			return commands;
 		}

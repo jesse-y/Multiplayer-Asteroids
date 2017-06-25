@@ -66,8 +66,13 @@ class PowerUp(GameObject):
 			elif self.shape.colliding(other.shape):
 				other.score += settings.SCR_GET_POWERUP
 				to_del[self.oid] = True
-				other.invulnerable = True
-				other.last_invuln = time.time()
+				if other.powerups < settings.MAX_POWERUP:
+					other.powerups += 1
+				else:
+					#additional points for getting a powerup at max capacity
+					other.score += settings.SCR_GET_POWERUP
+				#other.invulnerable = True
+				#other.last_invuln = time.time()
 			return to_del, ent, evt
 
 		#NOTE: the second argument of dict.get() is the default value to return if no

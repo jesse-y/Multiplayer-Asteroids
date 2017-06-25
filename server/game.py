@@ -261,7 +261,7 @@ class Game:
 			self.update_entities(dt)
 			self.check_collisions()
 
-			if random.random() < 1-.995:
+			if random.random() < settings.ASTEROID_RESPAWN_CHANCE:
 				self.spawn_asteroid()
 
 			for player in self.players.values():
