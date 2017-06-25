@@ -270,7 +270,7 @@ class Game:
 		#determine how quickly the server is handling frames
 		self.debug_fps += time.time() - self.last_time
 		self.debug_fps_num += 1
-		if self.debug_fps_num >= 20:
+		if self.debug_fps_num >= settings.GAME_SPEED:
 			avg_time = 1./(self.debug_fps / self.debug_fps_num)
 			sys.stdout.write('fps=%0.2d, elapsed_time=%0.2f\r'%(avg_time, self.debug_fps))
 			sys.stdout.flush()

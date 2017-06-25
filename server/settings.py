@@ -3,12 +3,12 @@ WORLD_X = 800
 WORLD_Y = 600
 
 #game settings
-GAME_SPEED = 60
+GAME_SPEED = 60 #game speed should be double the send rate
 SEND_RATE = 20
 MAX_PLAYERS = 2
 GAME_COMPLETE_DELAY = 2
 GAME_OVER_MAX_IDLE = 5000
-ASTEROID_RESPAWN_CHANCE = 0.005 #Not this is the chance to spawn an asteroid PER FRAME
+ASTEROID_RESPAWN_CHANCE = 0.007 #Note this is the chance to spawn an asteroid PER FRAME
 
 #game object settings
 PLAYER_SPEED = 250
