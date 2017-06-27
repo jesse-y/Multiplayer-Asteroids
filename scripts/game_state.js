@@ -97,8 +97,8 @@ function game_state() {
 	var tot_pings = 0;
 	this.state_update = function(msg) {
 		//window.print_msg('cbs', JSON.stringify(msg));
-		window.print_msg('status', 'new state: num_entities='+Object.keys(msg.state.entities).length + 
-						 ', msg length ~'+JSON.stringify(msg).length+' char');
+		window.print_msg('status', 'connected: ' + Object.keys(msg.state.entities).length + 
+						 ' objects, msg length ~'+JSON.stringify(msg).length+' char');
 
 		var snapshot = parse(msg);
 		game_time = snapshot.timestamp;
@@ -135,7 +135,7 @@ function game_state() {
 
 		//reconcile last input only if the last id we received exists in our past_moves array		
 		if (index >= 0 && index < past_moves.length && alive) {
-			window.print_msg('reconcile', 'unacked moves: '+past_moves.length);
+			//window.print_msg('reconcile', 'unacked moves: '+past_moves.length);
 
 			var client_state = past_moves[index].state;
 			var server_state = snapshot.state.entities[pid];
@@ -148,14 +148,14 @@ function game_state() {
 			predict_err.y = (client_state.y - server_state.y) * -1;
 
 			if (predict_err.x != 0 || predict_err.y != 0) {
-				console.log('prediction error: client=[x:'+client_state.x+',y:'+client_state.y+'], server=[x:'+server_state.x+',y:'+server_state.y+'], predict_err[x:'+predict_err.x+',y:'+predict_err.y+']')
+				//console.log('prediction error: client=[x:'+client_state.x+',y:'+client_state.y+'], server=[x:'+server_state.x+',y:'+server_state.y+'], predict_err[x:'+predict_err.x+',y:'+predict_err.y+']')
 				//apply non-zero prediction errors and update past move history to match
 				player.x += predict_err.x;
 				player.y += predict_err.y;
 				update_history();
 			}
 
-			window.print_msg('offset', 'current offset: x='+predict_err.x+', y='+predict_err.y);
+			//window.print_msg('offset', 'current offset: x='+predict_err.x+', y='+predict_err.y);
 
 			past_moves = past_moves.slice(index + 1);
 		}
@@ -171,9 +171,9 @@ function game_state() {
 		if (elapsed > 0.5) {
 			var avg_ping = Math.round(tot_pings / num_pings);
 			if (num_pings == 0) avg_ping = 0;
-			window.print_msg('network', 'game_time='+Number(game_time).toFixed(2)+
-							 ', fps='+Number(1/dt).toFixed(2)+
-							 ', ping='+avg_ping+'ms');
+			window.print_msg('network', 'game time: '+Number(game_time).toFixed(2)+
+							 ', fps: '+Number(1/dt).toFixed(2)+
+							 ', ping: '+avg_ping+'ms');
 			elapsed = 0.0;
 			tot_pings = 0;
 			num_pings = 0;
@@ -185,12 +185,14 @@ function game_state() {
 		if (from == undefined || to == undefined) return;
 
 		//debug prediction info
+		/*
 		var debug_str = 'local: [x: ' + Math.floor(player.x) + 
 			', y: ' + Math.floor(player.y) + 
 			', angle: ' + player.a + 
 			', mouseX: ' + window.input.mouseX() + 
 			', mouseY: ' + window.input.mouseY() + ']';
 		window.print_msg('local_predict', debug_str);
+		*/
 
 		interp.timestamp += dt;
 		var frac_t = ((interp.timestamp - from.timestamp) / (to.timestamp - from.timestamp));

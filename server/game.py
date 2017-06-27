@@ -120,7 +120,7 @@ class Game:
 
 		centre = [round(settings.WORLD_X/2), round(settings.WORLD_Y/2)]
 		for i, player in enumerate(self.players.values()):
-			#select default starting value
+			#select default starting spawn location
 			position = [round(settings.WORLD_X * self.start_pos[i][0]),
 						round(settings.WORLD_Y * self.start_pos[i][1])]
 			angle = math.atan2(centre[0]-position[0], centre[1]-position[1])

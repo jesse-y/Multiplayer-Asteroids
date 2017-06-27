@@ -221,7 +221,7 @@ class Player(GameObject):
 		self.alive = False;
 		self.death_time = time.time()
 		self.lives -= 1
-		if self.lives < 0:
+		if self.lives == 0:
 			self.out_of_lives = True
 
 	def add_shield(self):

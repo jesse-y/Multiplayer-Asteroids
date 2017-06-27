@@ -38,8 +38,7 @@ function connect_screen() {
 			if (document.getElementById('local_checkbox').checked) {
 				ws_url = 'ws://localhost:8080/connect';
 			} else {
-				//ws_url = 'ws://hawkleon.com:8080/connect';
-				ws_url = 'ws://172.104.62.118/connect';
+				ws_url = 'ws://asteroids.hawkleon.com/connect';
 			}
 			ws = new WebSocket(ws_url);
 			ws.onopen = open_handler;
@@ -60,11 +59,13 @@ function connect_screen() {
 		var cs_checkbox = document.createElement('input');
 		cs_checkbox.id = 'local_checkbox';
 		cs_checkbox.type = 'checkbox';
-		cs_checkbox.checked = true;
+		cs_checkbox.checked = false;
+		cs_checkbox.style.display = 'none';
 
 		var local_span = document.createElement('span');
 		local_span.id = 'local_span';
 		local_span.appendChild(document.createTextNode('LOCAL'));
+		local_span.style.display = 'none';
 
 		cs_div.appendChild(cs_title);
 		cs_div.appendChild(cs_textbox);
