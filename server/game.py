@@ -49,6 +49,7 @@ class Game:
 		self.send_rate = settings.GAME_SPEED/settings.SEND_RATE
 
 		#debug timers
+		self.display_fps = False
 		self.debug_fps = 0.
 		self.debug_fps_num = 0
 
@@ -277,15 +278,16 @@ class Game:
 			for player in self.players.values():
 				self.spawn_players()
 
-		#determine how quickly the server is handling frames
-		self.debug_fps += time.time() - self.last_time
-		self.debug_fps_num += 1
-		if self.debug_fps_num >= settings.GAME_SPEED:
-			avg_time = 1./(self.debug_fps / self.debug_fps_num)
-			sys.stdout.write('fps=%0.2d, elapsed_time=%0.2f\r'%(avg_time, self.debug_fps))
-			sys.stdout.flush()
-			self.debug_fps = 0.
-			self.debug_fps_num = 0
+		if self.display_fps:
+			#determine how quickly the server is handling frames
+			self.debug_fps += time.time() - self.last_time
+			self.debug_fps_num += 1
+			if self.debug_fps_num >= settings.GAME_SPEED:
+				avg_time = 1./(self.debug_fps / self.debug_fps_num)
+				sys.stdout.write('fps=%0.2d, elapsed_time=%0.2f\r'%(avg_time, self.debug_fps))
+				sys.stdout.flush()
+				self.debug_fps = 0.
+				self.debug_fps_num = 0
 
 		#send snapshots periodically
 		self.last_time = time.time()

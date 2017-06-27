@@ -3,7 +3,7 @@ WORLD_X = 800
 WORLD_Y = 600
 
 #game settings
-GAME_SPEED = 60 #game speed should be double the send rate
+GAME_SPEED = 60 #game speed minimum should be double the send rate
 SEND_RATE = 20 #it is important that GAME_SPEED and SEND_RATE are factors of each other
 MAX_PLAYERS = 4
 MIN_PLAYERS = 2
